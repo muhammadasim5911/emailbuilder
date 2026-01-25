@@ -1,0 +1,578 @@
+import { create } from 'zustand';
+import type { EmailTemplate, EmailElement, EditorState, User, FeatureFlags } from '../types';
+import { v4 as uuidv4 } from 'uuid';
+
+// Default feature flags for free tier
+const DEFAULT_FREE_FEATURES: FeatureFlags = {
+  advancedElements: false,
+  advancedLayout: false,
+  advancedStyling: false,
+  proTemplates: false,
+  bulkExport: false,
+  integrations: false,
+  analytics: false,
+  teamManagement: false,
+};
+
+// Default feature flags for pro tier
+const DEFAULT_PRO_FEATURES: FeatureFlags = {
+  advancedElements: true,
+  advancedLayout: true,
+  advancedStyling: true,
+  proTemplates: true,
+  bulkExport: true,
+  integrations: true,
+  analytics: true,
+  teamManagement: false,
+};
+
+interface EditorStore extends EditorState {
+  // Template Actions
+  createTemplate: (name: string, description?: string) => void;
+  loadTemplate: (id: string, template: EmailTemplate) => void;
+  updateTemplate: (updates: Partial<EmailTemplate>) => void;
+  saveTemplate: () => void;
+
+  // Element Actions
+  addElement: (element: EmailElement) => void;
+  addElementAtIndex: (element: EmailElement, index: number) => void;
+  addChildElement: (parentId: string, element: EmailElement) => void;
+  updateElement: (id: string, updates: Partial<EmailElement>) => void;
+  deleteElement: (id: string) => void;
+  selectElement: (id: string | null) => void;
+  duplicateElement: (id: string) => void;
+  reorderElements: (oldIndex: number, newIndex: number) => void;
+  moveElement: (activeId: string, overId: string) => void;
+
+  // Editor State Actions
+  setZoom: (zoom: number) => void;
+  setShowGrid: (show: boolean) => void;
+  setSnapToGrid: (snap: boolean) => void;
+  setGridSize: (size: number) => void;
+
+  // History Actions
+  undo: () => void;
+  redo: () => void;
+  clearHistory: () => void;
+
+  // Reset
+  reset: () => void;
+}
+
+interface UserStore {
+  currentUser: User | null;
+  features: FeatureFlags;
+  setUser: (user: User) => void;
+  setFeatures: (features: FeatureFlags) => void;
+  upgradeToPro: () => void;
+  logout: () => void;
+}
+
+interface TemplateLibraryStore {
+  templates: EmailTemplate[];
+  addTemplate: (template: EmailTemplate) => void;
+  removeTemplate: (id: string) => void;
+  updateTemplate: (id: string, updates: Partial<EmailTemplate>) => void;
+  getTemplate: (id: string) => EmailTemplate | undefined;
+}
+
+// Create Editor Store
+export const useEditorStore = create<EditorStore>((set, get) => {
+  const createEmptyTemplate = (): EmailTemplate => ({
+    id: uuidv4(),
+    name: 'New Email',
+    elements: [],
+    width: 600,
+    defaultFontFamily: 'Arial',
+    defaultFontSize: 16,
+    defaultLineHeight: 1.5,
+    defaultTextColor: '#000000',
+    defaultBackgroundColor: '#ffffff',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+
+  const addToHistory = () => {
+    const state = get();
+    if (state.currentTemplate) {
+      const newHistory = state.history.slice(0, state.historyIndex + 1);
+      newHistory.push(JSON.parse(JSON.stringify(state.currentTemplate)));
+      set({
+        history: newHistory,
+        historyIndex: newHistory.length - 1,
+      });
+    }
+  };
+
+  return {
+    currentTemplate: null,
+    selectedElementId: null,
+    zoom: 100,
+    isDirty: false,
+    history: [],
+    historyIndex: -1,
+    showGrid: false,
+    snapToGrid: false,
+    gridSize: 10,
+
+    // Template Actions
+    createTemplate: (name: string, description?: string) => {
+      const template = createEmptyTemplate();
+      template.name = name;
+      if (description) template.description = description;
+      set({
+        currentTemplate: template,
+        selectedElementId: null,
+        isDirty: false,
+        history: [template],
+        historyIndex: 0,
+      });
+    },
+
+    loadTemplate: (_id: string, template: EmailTemplate) => {
+      set({
+        currentTemplate: template,
+        selectedElementId: null,
+        isDirty: false,
+        history: [template],
+        historyIndex: 0,
+      });
+    },
+
+    updateTemplate: (updates: Partial<EmailTemplate>) => {
+      set((state) => ({
+        currentTemplate: state.currentTemplate
+          ? { ...state.currentTemplate, ...updates, updatedAt: new Date().toISOString() }
+          : null,
+        isDirty: true,
+      }));
+      addToHistory();
+    },
+
+    saveTemplate: () => {
+      set({ isDirty: false });
+    },
+
+    // Element Actions
+    addElement: (element: EmailElement) => {
+      set((state) => ({
+        currentTemplate: state.currentTemplate
+          ? {
+              ...state.currentTemplate,
+              elements: [...state.currentTemplate.elements, element],
+              updatedAt: new Date().toISOString(),
+            }
+          : null,
+        isDirty: true,
+      }));
+      addToHistory();
+    },
+
+    addElementAtIndex: (element: EmailElement, index: number) => {
+      set((state) => {
+        if (!state.currentTemplate) return state;
+        const elements = [...state.currentTemplate.elements];
+        elements.splice(index, 0, element);
+        return {
+          currentTemplate: {
+            ...state.currentTemplate,
+            elements,
+            updatedAt: new Date().toISOString(),
+          },
+          selectedElementId: element.id,
+          isDirty: true,
+        };
+      });
+      addToHistory();
+    },
+
+    addChildElement: (parentId: string, element: EmailElement) => {
+      set((state) => {
+        if (!state.currentTemplate) return state as any;
+
+        const addRecursive = (elements: EmailElement[]): EmailElement[] => {
+          return elements.map((el) => {
+            if (el.id === parentId) {
+              // Found the parent, append child
+              const children = 'children' in el && (el as any).children ? [...(el as any).children] : [];
+              return {
+                ...el,
+                children: [...children, element],
+              } as EmailElement;
+            }
+            // Continue searching deep
+            if ('children' in el && (el as any).children) {
+              return {
+                ...el,
+                children: addRecursive((el as any).children),
+              } as EmailElement;
+            }
+            return el;
+          });
+        };
+
+        return {
+          currentTemplate: {
+            ...state.currentTemplate,
+            elements: addRecursive(state.currentTemplate.elements),
+            updatedAt: new Date().toISOString(),
+          } as EmailTemplate,
+          selectedElementId: element.id,
+          isDirty: true,
+        } as any;
+      });
+      addToHistory();
+    },
+
+    updateElement: (id: string, updates: Partial<EmailElement>) => {
+      set((state) => {
+        if (!state.currentTemplate) return state as any;
+
+        const updateRecursive = (elements: EmailElement[]): EmailElement[] => {
+          return elements.map((el) => {
+            if (el.id === id) {
+              return { ...el, ...updates } as EmailElement;
+            }
+            if ('children' in el && (el as any).children) {
+              // Ensure we return the correct container type with updated children
+              return {
+                ...el,
+                children: updateRecursive((el as any).children),
+              } as EmailElement;
+            }
+            return el;
+          });
+        };
+
+        return {
+          currentTemplate: {
+            ...state.currentTemplate,
+            elements: updateRecursive(state.currentTemplate.elements),
+            updatedAt: new Date().toISOString(),
+          } as EmailTemplate,
+          isDirty: true,
+        } as any;
+      });
+      addToHistory();
+    },
+
+    deleteElement: (id: string) => {
+      set((state) => {
+        if (!state.currentTemplate) return state as any;
+
+        const deleteRecursive = (elements: EmailElement[]): EmailElement[] => {
+          return elements
+            .filter((el) => el.id !== id)
+            .map((el) => {
+              if ('children' in el && (el as any).children) {
+                return {
+                  ...el,
+                  children: deleteRecursive((el as any).children),
+                };
+              }
+              return el;
+            });
+        };
+
+        return {
+          currentTemplate: {
+            ...state.currentTemplate,
+            elements: deleteRecursive(state.currentTemplate.elements),
+            updatedAt: new Date().toISOString(),
+          } as EmailTemplate,
+          selectedElementId: state.selectedElementId === id ? null : state.selectedElementId,
+          isDirty: true,
+        } as any;
+      });
+      addToHistory();
+    },
+
+    selectElement: (id: string | null) => {
+      set({ selectedElementId: id });
+    },
+
+    duplicateElement: (id: string) => {
+      const state = get();
+      if (!state.currentTemplate) return;
+
+      // Helper to find and clone
+      const findAndClone = (elements: EmailElement[]): EmailElement | null => {
+        for (const el of elements) {
+          if (el.id === id) {
+             // Deep clone with new IDs for children
+             const deepClone = (item: EmailElement): EmailElement => {
+                const cloned = { ...item, id: uuidv4() };
+                if ('children' in cloned && (cloned as any).children) {
+                    (cloned as any).children = (cloned as any).children.map(deepClone);
+                }
+                return cloned;
+             };
+             return deepClone(el);
+          }
+          if ('children' in el && (el as any).children) {
+            const result = findAndClone((el as any).children);
+            if (result) return result;
+          }
+        }
+        return null;
+      };
+
+      const clonedElement = findAndClone(state.currentTemplate.elements);
+      if (clonedElement) {
+          // Add it to the list. Ideally next to the original... but for now append to root or implement insert logic
+          // Actually, duplicate usually means "clone next to original".
+          // Let's implement insertNextTo logic
+          
+          set((state) => {
+             if (!state.currentTemplate) return state as any;
+             
+             const insertRecursive = (elements: EmailElement[]): EmailElement[] => {
+                const index = elements.findIndex(el => el.id === id);
+                if (index !== -1) {
+                    const newElements = [...elements];
+                    newElements.splice(index + 1, 0, clonedElement);
+                    return newElements;
+                }
+                return elements.map(el => {
+                    if ('children' in el && (el as any).children) {
+                        return {
+                            ...el,
+                            children: insertRecursive((el as any).children)
+                        }
+                    }
+                    return el;
+                });
+             };
+
+             return {
+                currentTemplate: {
+                    ...state.currentTemplate,
+                    elements: insertRecursive(state.currentTemplate.elements),
+                    updatedAt: new Date().toISOString(),
+                } as EmailTemplate,
+                isDirty: true,
+             } as any;
+          });
+          addToHistory();
+      }
+    },
+
+    reorderElements: (oldIndex: number, newIndex: number) => {
+      set((state) => {
+        if (!state.currentTemplate) return state as any;
+
+        const elements = [...state.currentTemplate.elements];
+        const [removed] = elements.splice(oldIndex, 1);
+        elements.splice(newIndex, 0, removed);
+
+        return {
+          currentTemplate: {
+            ...state.currentTemplate,
+            elements,
+            updatedAt: new Date().toISOString(),
+          } as EmailTemplate,
+          isDirty: true,
+        } as any;
+      });
+      addToHistory();
+    },
+
+    moveElement: (activeId: string, overId: string) => {
+      set((state) => {
+        if (!state.currentTemplate) return state as any;
+
+        // Deep clone the elements tree
+        const newElements = JSON.parse(JSON.stringify(state.currentTemplate.elements));
+
+        // Helper to find parent container and index
+        const findParent = (items: EmailElement[], id: string): { parent: EmailElement[] | null, index: number } => {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].id === id) {
+              return { parent: items, index: i };
+            }
+            if ('children' in items[i] && (items[i] as any).children) {
+              const res = findParent((items[i] as any).children, id);
+              if (res.parent) return res;
+            }
+          }
+          return { parent: null, index: -1 };
+        };
+
+        // Find active element (source)
+        const source = findParent(newElements, activeId);
+        if (!source.parent) return state as any;
+
+        // Remove active element from source
+        const [movedElement] = source.parent.splice(source.index, 1);
+
+        // Find over element (target)
+        // Check if overId is a container itself (drop into empty container or at end)
+        // For simplicity in dnd-kit, usually overId is an item IN the container or the container itself.
+        // We need robust logic here.
+        // Assuming overId points to the item we are dropping OVER.
+        
+        let target = findParent(newElements, overId);
+        
+        // If we can't find 'overId', it might be a container ID.
+        // However, in our architecture, containers (Columns) are also Elements.
+        // So findParent would have found it if it was a child of root or another container.
+        // If overId IS the container ID, we should append to its children.
+        
+        if (!target.parent) {
+             // Maybe overId IS a container element?
+             const findElement = (items: EmailElement[], id: string): EmailElement | null => {
+                for (const item of items) {
+                    if (item.id === id) return item;
+                    if ('children' in item && (item as any).children) {
+                        const found = findElement((item as any).children, id);
+                        if (found) return found;
+                    }
+                }
+                return null;
+             };
+             const containerElement = findElement(newElements, overId);
+             if (containerElement && 'children' in containerElement) {
+                 (containerElement as any).children.push(movedElement);
+                 return {
+                    currentTemplate: {
+                        ...state.currentTemplate,
+                        elements: newElements,
+                        updatedAt: new Date().toISOString(),
+                    } as EmailTemplate,
+                    isDirty: true,
+                 } as any;
+             }
+             
+             // Fallback: don't move
+             return state as any;
+        }
+
+        // Note: Logic for transferring between containers vs reordering in same container
+        // If target found, we insert relative to it.
+        // dnd-kit usually handles the "index" calculation in dragOver, but here we just do "insert after" or "insert before".
+        // Better: dnd-kit gives us the new state if we use arrayMove. 
+        // But since we have a tree, we need manual handling or flattened structure.
+        
+        // Simplified Logic: Insert movedElement at target index (replacing helps swap, splice inserts)
+        target.parent.splice(target.index, 0, movedElement);
+
+        return {
+          currentTemplate: {
+            ...state.currentTemplate,
+            elements: newElements,
+            updatedAt: new Date().toISOString(),
+          } as EmailTemplate,
+          isDirty: true,
+        } as any;
+      });
+      // Don't add to history on every drag frame, only drag end calls this? 
+      // ideally moveElement is called on dragEnd.
+      addToHistory();
+    },
+
+    // Editor State Actions
+    setZoom: (zoom: number) => set({ zoom }),
+    setShowGrid: (show: boolean) => set({ showGrid: show }),
+    setSnapToGrid: (snap: boolean) => set({ snapToGrid: snap }),
+    setGridSize: (size: number) => set({ gridSize: size }),
+
+    // History Actions
+    undo: () => {
+      const state = get();
+      if (state.historyIndex > 0) {
+        const newIndex = state.historyIndex - 1;
+        set({
+          currentTemplate: state.history[newIndex],
+          historyIndex: newIndex,
+          isDirty: true,
+        });
+      }
+    },
+
+    redo: () => {
+      const state = get();
+      if (state.historyIndex < state.history.length - 1) {
+        const newIndex = state.historyIndex + 1;
+        set({
+          currentTemplate: state.history[newIndex],
+          historyIndex: newIndex,
+          isDirty: true,
+        });
+      }
+    },
+
+    clearHistory: () => {
+      set({ history: [], historyIndex: -1 });
+    },
+
+    reset: () => {
+      set({
+        currentTemplate: null,
+        selectedElementId: null,
+        zoom: 100,
+        isDirty: false,
+        history: [],
+        historyIndex: -1,
+        showGrid: false,
+        snapToGrid: false,
+      });
+    },
+  };
+});
+
+// Create User Store
+export const useUserStore = create<UserStore>((set) => ({
+  currentUser: null,
+  features: DEFAULT_FREE_FEATURES,
+
+  setUser: (user: User) => {
+    const features = user.plan === 'pro' ? DEFAULT_PRO_FEATURES : DEFAULT_FREE_FEATURES;
+    set({ currentUser: user, features });
+  },
+
+  setFeatures: (features: FeatureFlags) => {
+    set({ features });
+  },
+
+  upgradeToPro: () => {
+    set((state) => ({
+      currentUser: state.currentUser
+        ? { ...state.currentUser, plan: 'pro' }
+        : null,
+      features: DEFAULT_PRO_FEATURES,
+    }));
+  },
+
+  logout: () => {
+    set({ currentUser: null, features: DEFAULT_FREE_FEATURES });
+  },
+}));
+
+// Create Template Library Store
+export const useTemplateLibraryStore = create<TemplateLibraryStore>((set, get) => ({
+  templates: [],
+
+  addTemplate: (template: EmailTemplate) => {
+    set((state) => ({
+      templates: [...state.templates, template],
+    }));
+  },
+
+  removeTemplate: (id: string) => {
+    set((state) => ({
+      templates: state.templates.filter((t) => t.id !== id),
+    }));
+  },
+
+  updateTemplate: (id: string, updates: Partial<EmailTemplate>) => {
+    set((state) => ({
+      templates: state.templates.map((t) =>
+        t.id === id ? { ...t, ...updates } : t
+      ),
+    }));
+  },
+
+  getTemplate: (id: string) => {
+    return get().templates.find((t) => t.id === id);
+  },
+}));
