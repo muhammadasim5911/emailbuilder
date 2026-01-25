@@ -108,6 +108,10 @@ export interface ColumnElement extends BaseElementProps {
 export interface RowElement extends BaseElementProps {
   type: 'row';
   children: EmailElement[];
+  gap?: number;
+  contentBackgroundColor?: string;
+  backgroundImage?: string;
+  imageUrl?: string;
 }
 
 // Table Element

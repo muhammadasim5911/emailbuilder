@@ -214,8 +214,6 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 
 // ... Renderers ...
 
-import { useDroppable } from '@dnd-kit/core';
-
 // ... (previous code) ...
 
 const ColumnElementRenderer: React.FC<{ 
@@ -223,19 +221,10 @@ const ColumnElementRenderer: React.FC<{
     onAddChild?: (parentId: string, elementType: string) => void,
     renderChildren: (children: any[]) => React.ReactNode 
 }> = ({ element, onAddChild, renderChildren }) => {
-  const { setNodeRef, isOver } = useDroppable({
-    id: element.id,
-    data: {
-      type: 'column',
-      element: element,
-    },
-  });
-
   const [isNativeOver, setIsNativeOver] = React.useState(false);
 
   return (
     <div
-      ref={setNodeRef}
       onDragOver={(e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
@@ -268,16 +257,26 @@ const ColumnElementRenderer: React.FC<{
         padding: '10px',
         minHeight: '80px',
         height: '100%',
-        outline: (isOver || isNativeOver) ? '2px dashed #0ea5e9' : '1px dashed #e2e8f0',
-        backgroundColor: (isOver || isNativeOver) ? '#f0f9ff' : (element.backgroundColor || 'transparent'),
+        outline: isNativeOver ? '2px dashed #0ea5e9' : '1px dashed #e2e8f0',
+        backgroundColor: isNativeOver ? '#f0f9ff' : (element.backgroundColor || 'transparent'),
         transition: 'all 0.2s',
       }}
     >
       {element.children && element.children.length > 0 ? (
         renderChildren(element.children)
       ) : (
-        <div className="h-full flex items-center justify-center text-xs text-gray-300 border-2 border-dashed border-gray-100 rounded p-4 m-2 bg-gray-50 pointer-events-none">
-          Column {(isOver || isNativeOver) ? '(Release to Drop)' : ''}
+        <div className="h-full flex flex-col items-center justify-center gap-3 text-sm text-blue-500 border-2 border-dashed border-blue-200 rounded p-6 m-2 bg-blue-50/50">
+          <p className="text-center">No content here. Drag content from right.</p>
+          <button 
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm font-medium"
+            onClick={(e) => {
+              e.stopPropagation();
+              // TODO: Open element selector or show hint
+              alert('Drag elements from the right sidebar into this column');
+            }}
+          >
+            Add Content
+          </button>
         </div>
       )}
     </div>

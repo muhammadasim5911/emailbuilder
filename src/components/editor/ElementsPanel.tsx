@@ -13,6 +13,7 @@ const ELEMENTS_GROUPS = [
   {
     name: 'Content',
     elements: [
+      { id: 'heading', label: 'Heading', icon: Type, isFree: true },
       { id: 'text', label: 'Text', icon: Type, isFree: true },
       { id: 'image', label: 'Image', icon: Image, isFree: true },
       { id: 'button', label: 'Button', icon: MousePointerClick, isFree: true },
@@ -23,8 +24,7 @@ const ELEMENTS_GROUPS = [
   {
     name: 'Layout',
     elements: [
-      { id: 'row', label: 'Row', icon: LayoutGrid, isFree: true },
-      { id: 'column', label: 'Column', icon: Columns, isFree: true },
+      { id: 'row', label: 'Columns', icon: LayoutGrid, isFree: true },
       { id: 'spacer', label: 'Spacer', icon: ArrowDownToLine, isFree: true },
       { id: 'section', label: 'Section', icon: Square, isFree: true },
     ],

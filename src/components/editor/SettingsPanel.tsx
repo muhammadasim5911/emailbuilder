@@ -468,6 +468,56 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ element, onUpdate 
                         />
                     </div>
                  </div>
+                 
+                 <Separator />
+                 
+                 <div className="grid gap-2">
+                    <Label>Content Background Color</Label>
+                    <div className="flex gap-2">
+                        <div className="w-10 h-10 rounded-md border overflow-hidden shrink-0 relative shadow-sm">
+                            <input
+                                type="color"
+                                value={(element as any).contentBackgroundColor || '#ffffff'}
+                                onChange={(e) => onUpdate({ contentBackgroundColor: e.target.value } as any)}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                            <div className="w-full h-full" style={{ backgroundColor: (element as any).contentBackgroundColor || 'transparent' }} />
+                        </div>
+                        <Input
+                            value={(element as any).contentBackgroundColor || 'transparent'}
+                            onChange={(e) => onUpdate({ contentBackgroundColor: e.target.value } as any)}
+                        />
+                    </div>
+                 </div>
+                 
+                 <Separator />
+                 
+                 <div className="grid gap-2">
+                    <Label>Background Image</Label>
+                    <Button 
+                        variant="default" 
+                        className="w-full"
+                        onClick={() => {
+                            // TODO: Implement image upload
+                            alert('Image upload will be implemented');
+                        }}
+                    >
+                        Upload Image
+                    </Button>
+                 </div>
+                 
+                 <div className="grid gap-2">
+                    <Label>Image URL</Label>
+                    <Input
+                        type="text"
+                        value={(element as any).imageUrl || ''}
+                        onChange={(e) => onUpdate({ imageUrl: e.target.value } as any)}
+                        placeholder="https://"
+                    />
+                 </div>
+                 
+                 <Separator />
+                 
                  <div className="grid gap-2">
                     <Label>Gap</Label>
                     <Input
