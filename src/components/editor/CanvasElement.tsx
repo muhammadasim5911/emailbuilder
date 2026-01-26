@@ -256,7 +256,9 @@ const ColumnElementRenderer: React.FC<{
         }
       }}
       style={{
-        display: 'inline-block',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: element.horizontalAlign === 'center' ? 'center' : element.horizontalAlign === 'right' ? 'flex-end' : 'flex-start',
         width: element.width || '50%',
         verticalAlign: 'top',
         padding: '10px',
