@@ -159,11 +159,13 @@ export const useEditorStore = create<EditorStore>((set, get) => {
     },
 
     loadTemplate: (_id: string, template: EmailTemplate) => {
+      // Create a completely new object to ensure reference changes
+      const newTemplate = JSON.parse(JSON.stringify(template));
       set({
-        currentTemplate: template,
+        currentTemplate: newTemplate,
         selectedElementId: null,
         isDirty: false,
-        history: [template],
+        history: [newTemplate],
         historyIndex: 0,
       });
     },

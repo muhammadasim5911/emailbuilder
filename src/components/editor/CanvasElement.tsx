@@ -144,6 +144,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       {element.type === 'divider' && <DividerElementRenderer element={element as any} />}
       {element.type === 'spacer' && <SpacerElementRenderer element={element as any} />}
       {element.type === 'video' && <VideoElementRenderer element={element as any} />}
+      {element.type === 'html' && <HTMLElementRenderer element={element as any} />}
 
       {/* Container Renderers */}
       {element.type === 'column' && (
@@ -325,7 +326,7 @@ const TextElementRenderer: React.FC<{ element: any }> = ({ element }) => (
       fontSize: `${element.fontSize}px`,
       fontFamily: element.fontFamily,
       color: element.color,
-      textAlign: element.align || 'left',
+      textAlign: element.textAlign || 'left',
       fontWeight: element.fontWeight,
       lineHeight: element.lineHeight,
       fontStyle: element.fontStyle,
@@ -341,8 +342,8 @@ const ImageElementRenderer: React.FC<{ element: any }> = ({ element }) => (
     alt={element.alt}
     style={{
       width: element.width || '100%', // Respect width if set, otherwise responsive
-      maxWidth: '100%',
-      height: 'auto',
+      maxWidth: '100%', // Ensure images never overflow container
+      height: element.height || 'auto', // Respect height if set, otherwise auto
       display: 'block',
       objectFit: element.objectFit || 'cover',
     }}
@@ -396,4 +397,11 @@ const VideoElementRenderer: React.FC<{ element: any }> = ({ element }) => (
         <span className="text-4xl opacity-50">▶</span>
     )}
   </div>
+);
+
+const HTMLElementRenderer: React.FC<{ element: any }> = ({ element }) => (
+  <div 
+    dangerouslySetInnerHTML={{ __html: element.content }}
+    style={{ width: '100%', overflow: 'auto' }}
+  />
 );

@@ -1,5 +1,5 @@
 // Element Types
-export type ElementType = 'text' | 'image' | 'button' | 'divider' | 'spacer' | 'column' | 'row' | 'section' | 'table' | 'video' | 'form' | 'countdown';
+export type ElementType = 'text' | 'image' | 'button' | 'divider' | 'spacer' | 'column' | 'row' | 'section' | 'table' | 'video' | 'form' | 'countdown' | 'html';
 
 export type FontFamily = 'Arial' | 'Helvetica' | 'Georgia' | 'Times New Roman' | 'Courier New' | 'Verdana' | 'Comic Sans MS' | 'Trebuchet MS';
 
@@ -174,6 +174,15 @@ export interface CountdownElement extends BaseElementProps {
   showSeconds: boolean;
 }
 
+// HTML Element (Raw HTML content)
+export interface HTMLElement extends Partial<BaseElementProps> {
+  type: 'html';
+  id: string;
+  content: string; // Raw HTML
+  visible?: boolean;
+  locked?: boolean;
+}
+
 // Union type for all elements
 export type EmailElement =
   | TextElement
@@ -187,7 +196,8 @@ export type EmailElement =
   | TableElement
   | VideoElement
   | FormElement
-  | CountdownElement;
+  | CountdownElement
+  | HTMLElement;
 
 // Template
 export interface EmailTemplate {

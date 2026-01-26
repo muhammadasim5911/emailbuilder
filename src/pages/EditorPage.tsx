@@ -5,8 +5,9 @@ import { Toolbar, Canvas, ElementsPanel, SettingsPanel, LayersPanel, TemplateLib
 import { Button } from '../components/ui/button';
 import { Toast } from '../components/base';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
-import { exportTemplate, createDefaultElement, findElementDeep } from '../utils';
+import { exportTemplate, createDefaultElement, findElementDeep, parseEmailHTML } from '../utils';
 import type { ExportOptions } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 export const EditorPage: React.FC = () => {
   const [showPreview, setShowPreview] = useState(false);
@@ -58,9 +59,34 @@ export const EditorPage: React.FC = () => {
         description: 'A simple welcome email for new users',
         width: 600,
         elements: [
-           { id: '1', type: 'text', content: 'Welcome to our platform!', fontSize: 24, textAlign: 'center', padding: { top: 20, bottom: 20, left: 20, right: 20 } },
-           { id: '2', type: 'image', src: 'https://via.placeholder.com/600x200', alt: 'Welcome Banner', width: '100%', height: 'auto' },
-           { id: '3', type: 'text', content: 'We are excited to have you on board.', fontSize: 16, padding: { top: 10, bottom: 10, left: 20, right: 20 } }
+          {
+            id: uuidv4(),
+            type: 'row' as const,
+            label: 'Welcome Row',
+            children: [
+              {
+                id: uuidv4(),
+                type: 'column' as const,
+                label: 'Content Column',
+                children: [
+                  { id: uuidv4(), type: 'text' as const, content: 'Welcome to our platform!', fontSize: 24, textAlign: 'center' as const, padding: { top: 20, bottom: 20, left: 20, right: 20 }, margin: { top: 0, bottom: 0, left: 0, right: 0 }, visible: true, locked: false },
+                  { id: uuidv4(), type: 'image' as const, src: 'https://via.placeholder.com/600x200', alt: 'Welcome Banner', width: '100%', height: 'auto', padding: { top: 10, bottom: 10, left: 0, right: 0 }, margin: { top: 0, bottom: 0, left: 0, right: 0 }, visible: true, locked: false },
+                  { id: uuidv4(), type: 'text' as const, content: 'We are excited to have you on board.', fontSize: 16, padding: { top: 10, bottom: 10, left: 20, right: 20 }, margin: { top: 0, bottom: 0, left: 0, right: 0 }, visible: true, locked: false }
+                ],
+                width: '100%',
+                padding: { top: 20, right: 20, bottom: 20, left: 20 },
+                margin: { top: 0, right: 0, bottom: 0, left: 0 },
+                visible: true,
+                locked: false,
+              }
+            ],
+            width: '100%',
+            gap: 10,
+            padding: { top: 0, right: 0, bottom: 0, left: 0 },
+            margin: { top: 0, right: 0, bottom: 0, left: 0 },
+            visible: true,
+            locked: false,
+          }
         ] as any[],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -76,9 +102,34 @@ export const EditorPage: React.FC = () => {
         description: 'Standard newsletter layout',
         width: 600,
         elements: [
-            { id: '1', type: 'text', content: 'Monthly Newsletter', fontSize: 28, fontWeight: 'bold', textAlign: 'center', padding: { top: 30, bottom: 30, left: 20, right: 20 } },
-            { id: '2', type: 'divider', color: '#eeeeee', height: 1, padding: { top: 10, bottom: 10, left: 0, right: 0 } },
-            { id: '3', type: 'text', content: 'Here are the latest updates...', fontSize: 16, padding: { top: 20, bottom: 20, left: 20, right: 20 } }
+          {
+            id: uuidv4(),
+            type: 'row' as const,
+            label: 'Newsletter Row',
+            children: [
+              {
+                id: uuidv4(),
+                type: 'column' as const,
+                label: 'Newsletter Column',
+                children: [
+                  { id: uuidv4(), type: 'text' as const, content: 'Monthly Newsletter', fontSize: 28, fontWeight: 'bold' as const, textAlign: 'center' as const, padding: { top: 30, bottom: 30, left: 20, right: 20 }, margin: { top: 0, bottom: 0, left: 0, right: 0 }, visible: true, locked: false },
+                  { id: uuidv4(), type: 'divider' as const, color: '#eeeeee', height: 1, padding: { top: 10, bottom: 10, left: 0, right: 0 }, margin: { top: 0, bottom: 0, left: 0, right: 0 }, visible: true, locked: false },
+                  { id: uuidv4(), type: 'text' as const, content: 'Here are the latest updates...', fontSize: 16, padding: { top: 20, bottom: 20, left: 20, right: 20 }, margin: { top: 0, bottom: 0, left: 0, right: 0 }, visible: true, locked: false }
+                ],
+                width: '100%',
+                padding: { top: 20, right: 20, bottom: 20, left: 20 },
+                margin: { top: 0, right: 0, bottom: 0, left: 0 },
+                visible: true,
+                locked: false,
+              }
+            ],
+            width: '100%',
+            gap: 10,
+            padding: { top: 0, right: 0, bottom: 0, left: 0 },
+            margin: { top: 0, right: 0, bottom: 0, left: 0 },
+            visible: true,
+            locked: false,
+          }
         ] as any[],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -88,13 +139,123 @@ export const EditorPage: React.FC = () => {
         defaultLineHeight: 1.6,
         defaultTextColor: '#333333',
       });
+      
+      // Add HTML template (World Tourism Day)
+      const htmlContent = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
+<head><meta charset="UTF-8"><meta content="width=device-width, initial-scale=1" name="viewport"><meta name="x-apple-disable-message-reformatting"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta content="telephone=no" name="format-detection"><title>World Tourism Day</title></head>
+<body class="body" style="width:100%;height:100%;padding:0;Margin:0">
+<div dir="ltr" class="es-wrapper-color" lang="en" style="background-color:#D4F3FE">
+<table width="100%" cellspacing="0" cellpadding="0" class="es-wrapper" role="none" style="border-collapse:collapse;border-spacing:0px;padding:0;Margin:0;width:100%;height:100%;background-color:#D4F3FE">
+<tr><td valign="top" style="padding:0;Margin:0">
+<table cellpadding="0" cellspacing="0" align="center" class="es-header" role="none" style="border-collapse:collapse;border-spacing:0px;width:100%;background-color:transparent">
+<tr><td align="center" style="padding:0;Margin:0">
+<table bgcolor="#ffffff" align="center" cellpadding="0" cellspacing="0" class="es-header-body" role="none" style="border-collapse:collapse;border-spacing:0px;background-color:transparent;width:600px">
+<tr><td align="left" style="padding:20px;Margin:0">
+<table cellpadding="0" cellspacing="0" width="100%" role="none" style="border-collapse:collapse;border-spacing:0px">
+<tr><td valign="top" align="center" style="padding:0;Margin:0;width:560px">
+<table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="border-collapse:collapse;border-spacing:0px">
+<tr><td align="center" style="padding:0;Margin:0;font-size:0px"><a target="_blank" href="https://viewstripo.email"><img src="https://epxkylf.stripocdn.email/content/guids/CABINET_0ee1c5a7ffbcbc022a316635d5ce8f13/images/group_116.png" alt="Logo" height="60" title="Logo" style="display:block;font-size:14px;border:0"></a></td></tr>
+</table></td></tr></table></td></tr></table></td></tr></table>
+<table cellspacing="0" cellpadding="0" align="center" class="es-content" role="none" style="border-collapse:collapse;border-spacing:0px;width:100%">
+<tr><td align="center" style="padding:0;Margin:0">
+<table cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center" class="es-content-body" style="border-collapse:collapse;border-spacing:0px;background-color:#ffffff;width:600px" role="none">
+<tr><td align="left" style="padding:0;Margin:0">
+<table width="100%" cellspacing="0" cellpadding="0" role="none" style="border-collapse:collapse;border-spacing:0px">
+<tr><td valign="top" align="center" style="padding:0;Margin:0;width:600px">
+<table width="100%" cellspacing="0" cellpadding="0" role="presentation" style="border-collapse:collapse;border-spacing:0px">
+<tr><td align="center" style="padding:0;Margin:0"><a target="_blank" href="https://viewstripo.email"><img src="https://epxkylf.stripocdn.email/content/guids/bannerImgGuid/images/image16620443057282756.png" alt="World tourism day" title="World tourism day" width="600" height="400" style="display:block;font-size:14px;border:0"></a></td></tr>
+</table></td></tr></table></td></tr></table></td></tr></table>
+<table cellpadding="0" cellspacing="0" align="center" class="es-content" role="none" style="border-collapse:collapse;border-spacing:0px;width:100%">
+<tr><td align="center" style="padding:0;Margin:0">
+<table bgcolor="#ffffff" align="center" cellpadding="0" cellspacing="0" class="es-content-body" role="none" style="border-collapse:collapse;border-spacing:0px;background-color:#FFFFFF;width:600px">
+<tr><td align="left" style="Margin:0;padding:20px 20px 30px 20px">
+<table cellpadding="0" cellspacing="0" width="100%" role="none" style="border-collapse:collapse;border-spacing:0px">
+<tr><td align="center" valign="top" style="padding:0;Margin:0;width:560px">
+<table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="border-collapse:collapse;border-spacing:0px">
+<tr><td align="center" style="padding:0;Margin:0;padding-right:40px;padding-left:40px"><p style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:21px;color:#455A64;font-size:14px">On the occasion of <strong>World Tourism Day</strong>, I wish that you are blessed with more and more holidays to see many more new places and create beautiful memories to cherish.</p></td></tr>
+<tr><td align="center" style="padding:0;Margin:0;padding-top:20px;padding-right:40px;padding-left:40px"><p style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:21px;color:#455A64;font-size:14px">Shop now and save up to 25% with our autumn deals</p></td></tr>
+<tr><td align="center" style="padding:0;Margin:0;padding-top:20px"><span style="border-style:solid;border-color:#2CB543;background:#BD242B;border-width:0px;display:inline-block;border-radius:10px;width:auto"><a href="https://viewstripo.email" target="_blank" style="text-decoration:none;color:#FFFFFF;font-size:18px;padding:10px 20px;display:inline-block;background:#BD242B;border-radius:10px;font-family:arial, 'helvetica neue', helvetica, sans-serif;font-weight:normal;line-height:21.6px;width:auto;text-align:center">Shopping for Travel</a></span></td></tr>
+</table></td></tr></table></td></tr></table></td></tr></table>
+<table cellpadding="0" cellspacing="0" align="center" class="es-footer" role="none" style="border-collapse:collapse;border-spacing:0px;width:100%;background-color:transparent">
+<tr><td align="center" style="padding:0;Margin:0">
+<table bgcolor="#ffffff" align="center" cellpadding="0" cellspacing="0" class="es-footer-body" role="none" style="border-collapse:collapse;border-spacing:0px;background-color:#FFFFFF;width:600px">
+<tr><td align="left" style="Margin:0;padding:40px 20px 20px 20px">
+<table cellpadding="0" cellspacing="0" width="100%" role="none" style="border-collapse:collapse;border-spacing:0px">
+<tr><td align="center" valign="top" style="padding:0;Margin:0;width:560px">
+<table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="border-collapse:collapse;border-spacing:0px">
+<tr><td align="center" style="padding:0;Margin:0"><h2 style="Margin:0;font-family:Orbitron, sans-serif;font-size:24px;font-weight:bold;line-height:28.8px;color:#455A64">Any questions? <a href="https://viewstripo.email" target="_blank" style="text-decoration:underline;color:#068FC1;font-size:24px">We're here to help!</a></h2></td></tr>
+<tr><td align="center" style="padding:0;Margin:0"><p style="Margin:0;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:21px;color:#455A64;font-size:14px">Copyright © 2022 Delivery, All rights reserved.</p></td></tr>
+</table></td></tr></table></td></tr></table></td></tr></table>
+</td></tr></table></div></body></html>`;
+      
+      addTemplate({
+        id: 'tourism-day-html',
+        name: 'World Tourism Day',
+        description: 'HTML email template - Travel promotion',
+        width: 600,
+        elements: [
+          {
+            id: uuidv4(),
+            type: 'html' as const,
+            content: htmlContent,
+            visible: true,
+            locked: false,
+          }
+        ] as any[],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        defaultBackgroundColor: '#D4F3FE',
+        defaultFontFamily: 'Arial',
+        defaultFontSize: 14,
+        defaultLineHeight: 1.5,
+        defaultTextColor: '#455A64',
+      });
     }
   }, [templates.length, addTemplate]);
 
+
   const handleLoadTemplate = (template: any) => {
-    loadEditorTemplate(template.id, template);
+    // Check if template contains HTML element that needs parsing
+    let templateToLoad = template;
+    
+    if (template.elements.length > 0 && template.elements[0]?.type === 'html') {
+      try {
+        const htmlContent = template.elements[0].content;
+        const parsedElements = parseEmailHTML(htmlContent);
+        
+        if (parsedElements.length > 0) {
+          templateToLoad = {
+            ...template,
+            elements: parsedElements,
+          };
+          showToast('HTML template parsed into editable elements', 'success');
+        }
+      } catch (error) {
+        console.error('Error parsing HTML template:', error);
+        showToast('Error parsing HTML template', 'error');
+      }
+    }
+    
+    // Regenerate IDs to avoid conflicts with existing elements
+    const regenerateIds = (elements: any[]): any[] => {
+      return elements.map(el => {
+        const newEl = { ...el, id: uuidv4() };
+        if ('children' in newEl && newEl.children) {
+          newEl.children = regenerateIds(newEl.children);
+        }
+        return newEl;
+      });
+    };
+
+    const templateWithNewIds = {
+      ...templateToLoad,
+      elements: regenerateIds(templateToLoad.elements),
+    };
+
+    loadEditorTemplate(template.id, templateWithNewIds);
     setShowTemplateLibrary(false);
-    showToast('Template loaded successfully', 'success');
+    showToast(`"${template.name}" loaded`, 'success');
   };
 
   const selectedElement = selectedElementId

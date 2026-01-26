@@ -509,3 +509,6 @@ export const createDefaultElement = (type: string): Partial<EmailElement> => {
       return common;
   }
 };
+
+// Export HTML parser
+export { parseEmailHTML } from './htmlParser';
