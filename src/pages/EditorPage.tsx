@@ -5,7 +5,7 @@ import { Toolbar, Canvas, ElementsPanel, SettingsPanel, LayersPanel, TemplateLib
 import { Button } from '../components/ui/button';
 import { Toast } from '../components/base';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
-import { exportTemplate, createDefaultElement } from '../utils';
+import { exportTemplate, createDefaultElement, findElementDeep } from '../utils';
 import type { ExportOptions } from '../types';
 
 export const EditorPage: React.FC = () => {
@@ -98,7 +98,7 @@ export const EditorPage: React.FC = () => {
   };
 
   const selectedElement = selectedElementId
-    ? currentTemplate?.elements.find((el: any) => el.id === selectedElementId)
+    ? findElementDeep(currentTemplate?.elements || [], selectedElementId)
     : null;
 
   const { features } = useUserStore();

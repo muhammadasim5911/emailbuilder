@@ -170,24 +170,18 @@ export const Canvas: React.FC<CanvasProps> = ({
                   items={template.elements.map(el => el.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  {template.elements.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-96 text-muted-foreground border-2 border-dashed border-slate-200 m-8 rounded-xl bg-slate-50/50">
-                       <p className="text-lg font-medium">Empty Template</p>
-                       <p className="text-sm">Add elements from the sidebar</p>
-                    </div>
-                  ) : (
-                    template.elements.map((element) => (
-                      <CanvasElement
-                        key={element.id}
-                        element={element}
-                        isSelected={selectedElementId === element.id}
-                        onSelect={onElementSelect}
-                        onUpdate={onElementUpdate}
-                        onDelete={onElementDelete}
-                        onAddChild={onAddChild}
-                      />
-                    ))
-                  )}
+                  {template.elements.map((element) => (
+                    <CanvasElement
+                      key={element.id}
+                      element={element}
+                      isSelected={selectedElementId === element.id}
+                      onSelect={onElementSelect}
+                      onUpdate={onElementUpdate}
+                      onDelete={onElementDelete}
+                      onAddChild={onAddChild}
+                      selectedElementId={selectedElementId}
+                    />
+                  ))}
                 </SortableContext>
                 
                  {createPortal(

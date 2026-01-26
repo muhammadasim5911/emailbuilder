@@ -11,6 +11,7 @@ interface CanvasElementProps {
   onUpdate: (_id: string, _updates: Partial<EmailElement>) => void;
   onDelete: (id: string) => void;
   onAddChild?: (parentId: string, elementType: string) => void;
+  selectedElementId?: string | null;
 }
 
 import { useSortable } from '@dnd-kit/sortable';
@@ -43,6 +44,7 @@ const RenderChildren = ({
           onUpdate={onUpdate}
           onDelete={onDelete}
           onAddChild={onAddChild}
+          selectedElementId={selectedElementId}
         />
       ))}
     </>
@@ -57,6 +59,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   onUpdate,
   onDelete,
   onAddChild,
+  selectedElementId,
 }) => {
   const {
     attributes,
@@ -75,6 +78,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log('CanvasElement clicked:', element.id, element.type, 'isSelected:', isSelected);
     onSelect(element.id);
   };
 
@@ -127,8 +131,8 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       onClick={handleClick}
       className={clsx(
         'relative transition-all cursor-pointer group',
-        isSelected && 'ring-2 ring-primary bg-primary/5',
-        (isHovered || isSelected) && !isDragging && 'ring-1 ring-primary/40',
+        isSelected && 'ring-2 ring-blue-500 ring-offset-2 bg-blue-50/30',
+        !isSelected && 'hover:ring-1 hover:ring-blue-300',
         isDragging && 'opacity-50',
       )}
       data-element-id={element.id}
@@ -153,7 +157,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     onUpdate={onUpdate} 
                     onDelete={onDelete} 
                     onAddChild={onAddChild}
-                    selectedElementId={null} 
+                    selectedElementId={selectedElementId || null} 
                 />
             )}
         />
@@ -168,7 +172,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     onUpdate={onUpdate} 
                     onDelete={onDelete} 
                     onAddChild={onAddChild}
-                    selectedElementId={null} 
+                    selectedElementId={selectedElementId || null} 
                 />
             )}
         />
@@ -183,7 +187,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     onUpdate={onUpdate} 
                     onDelete={onDelete} 
                     onAddChild={onAddChild}
-                    selectedElementId={null} 
+                    selectedElementId={selectedElementId || null} 
                 />
             )}
         />

@@ -120,6 +120,35 @@ export const useEditorStore = create<EditorStore>((set, get) => {
       const template = createEmptyTemplate();
       template.name = name;
       if (description) template.description = description;
+      
+      // Automatically add a default row with column for new templates
+      const defaultRow = {
+        id: uuidv4(),
+        type: 'row' as const,
+        label: 'Row',
+        children: [
+          {
+            id: uuidv4(),
+            type: 'column' as const,
+            label: 'Column',
+            children: [],
+            width: '100%',
+            padding: { top: 20, right: 20, bottom: 20, left: 20 },
+            margin: { top: 0, right: 0, bottom: 0, left: 0 },
+            visible: true,
+            locked: false,
+          }
+        ],
+        width: '100%',
+        gap: 10,
+        padding: { top: 0, right: 0, bottom: 0, left: 0 },
+        margin: { top: 0, right: 0, bottom: 0, left: 0 },
+        visible: true,
+        locked: false,
+      };
+      
+      template.elements = [defaultRow as any];
+      
       set({
         currentTemplate: template,
         selectedElementId: null,

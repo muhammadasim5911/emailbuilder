@@ -398,6 +398,22 @@ export const createDefaultElement = (type: string): Partial<EmailElement> => {
   };
 
   switch (type) {
+    case 'heading':
+      return {
+        ...common,
+        type: 'text',
+        label: 'Heading',
+        content: 'Heading Text',
+        fontSize: 32,
+        fontFamily: 'Arial',
+        fontWeight: 'bold',
+        fontStyle: 'normal',
+        lineHeight: 1.2,
+        letterSpacing: 0,
+        color: '#000000',
+        textAlign: 'left',
+      } as any;
+      
     case 'text':
       return {
         ...common,
