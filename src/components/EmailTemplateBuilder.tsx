@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { EmailTemplateBuilderProps, SaveData } from '../types';
 import { useEditorStore, useMergeTagStore } from '../store';
 import { templateToHtml, templateToMjml, exportTemplate } from '../utils';
@@ -23,28 +23,32 @@ export const EmailTemplateBuilder: React.FC<EmailTemplateBuilderProps> = ({
   hideSaveButton = false,
   hideTemplatesButton = false,
 }) => {
-  const { currentTemplate, loadTemplate, updateTemplate } = useEditorStore();
+  const { currentTemplate, loadTemplate } = useEditorStore();
   const { setMergeTags, setMergeTagTriggers } = useMergeTagStore();
+  const initializedRef = useRef(false);
 
-  // Initialize merge tags and triggers
+  // Initialize merge tags and triggers only once
   useEffect(() => {
-    setMergeTags(mergeTags);
-    setMergeTagTriggers(mergeTagTriggers);
-  }, [mergeTags, mergeTagTriggers, setMergeTags, setMergeTagTriggers]);
+    if (!initializedRef.current) {
+      setMergeTags(mergeTags);
+      setMergeTagTriggers(mergeTagTriggers);
+      initializedRef.current = true;
+    }
+  }, []); // Empty deps - only run once
 
   // Load initial template
   useEffect(() => {
-    if (initialTemplate) {
+    if (initialTemplate && !currentTemplate) {
       loadTemplate(initialTemplate.id, initialTemplate);
     }
-  }, [initialTemplate, loadTemplate]);
+  }, [initialTemplate?.id]); // Only re-run if template ID changes
 
   // Call onChange when template changes
   useEffect(() => {
     if (currentTemplate && onChange) {
       onChange(currentTemplate);
     }
-  }, [currentTemplate, onChange]);
+  }, [currentTemplate]);
 
   // Handle save
   const handleSave = () => {
