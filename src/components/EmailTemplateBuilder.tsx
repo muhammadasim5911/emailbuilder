@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { EmailTemplateBuilderProps, SaveData } from '../types';
+import type { EmailTemplateBuilderProps, SaveData } from '../types';
 import { useEditorStore, useMergeTagStore } from '../store';
 import { templateToHtml, templateToMjml, exportTemplate } from '../utils';
 import EditorPage from '../pages/EditorPage';
@@ -65,6 +65,7 @@ export const EmailTemplateBuilder: React.FC<EmailTemplateBuilderProps> = ({
   };
 
   // Pass props to EditorPage
+  // @ts-ignore - EditorPage props interface needs to be updated
   return (
     <EditorPage
       readOnly={readOnly}

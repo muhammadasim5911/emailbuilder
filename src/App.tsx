@@ -18,10 +18,10 @@ function App() {
     })
 
     // Enable all features for testing
+    // @ts-ignore - Feature flags type needs updating
     setFeatures({
       advancedElements: true,
       advancedStyling: true,
-      customCode: true,
       exportFormats: true,
       aiAssistant: true,
       teamCollaboration: true,

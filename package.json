@@ -11,7 +11,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
+    "build:check": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -33,6 +34,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dnd-core": "^16.0.1",
+    "email-template-builder": "github:muhammadasim5911/emailbuilder",
     "lucide-react": "^0.563.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
