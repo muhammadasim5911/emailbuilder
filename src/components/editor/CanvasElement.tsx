@@ -272,7 +272,7 @@ const ColumnElementRenderer: React.FC<{
       {element.children && element.children.length > 0 ? (
         renderChildren(element.children)
       ) : (
-        <div className="h-full flex flex-col items-center justify-center gap-3 text-sm text-blue-500 border-2 border-dashed border-blue-200 rounded p-6 m-2 bg-blue-50/50">
+        <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-sm text-blue-500 border-2 border-dashed border-blue-200 rounded p-6 bg-blue-50/50">
           <p className="text-center">No content here. Drag content from right.</p>
           <button 
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm font-medium"
