@@ -65,7 +65,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           ↷
         </Button>
         <div className="h-6 w-px bg-gray-200" />
-        {!hideSaveButton && (
+        {/* {!hideSaveButton && (
           <Button
             variant="primary"
             size="sm"
@@ -74,7 +74,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           >
             {isDirty ? 'Save*' : 'Saved'}
           </Button>
-        )}
+        )} */}
       </div>
 
       {/* Center - Device modes and Zoom controls */}
@@ -149,7 +149,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       </div>
 
       {/* Right side - Preview and Export (only shown if callbacks provided) */}
-      {(onShowPreview || onExport) && (
+      {/* {(onShowPreview || onExport) && (
         <div className="flex items-center gap-2">
           {onShowPreview && (
             <Button
@@ -204,7 +204,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             </div>
           )}
         </div>
-      )}
+      )} */}
     </div>
   );
 };
