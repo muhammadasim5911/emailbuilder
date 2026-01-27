@@ -10,9 +10,11 @@ interface ToolbarProps {
   onUndo: () => void;
   onRedo: () => void;
   onSave: () => void;
-  onExport: (format: string) => void;
-  onShowPreview: () => void;
+  onExport?: (format: string) => void; // Optional for library mode
+  onShowPreview?: () => void; // Optional for library mode
   onOpenTemplates?: () => void;
+  hideSaveButton?: boolean; // For library customization
+  hideTemplatesButton?: boolean; // For library customization
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -27,12 +29,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onExport,
   onShowPreview,
   onOpenTemplates,
+  hideSaveButton = false,
+  hideTemplatesButton = false,
 }) => {
   return (
     <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 gap-4">
       {/* Left side - File actions */}
       <div className="flex items-center gap-2">
-        {onOpenTemplates && (
+        {onOpenTemplates && !hideTemplatesButton && (
           <Button
             variant="secondary"
             size="sm"
@@ -61,14 +65,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           ↷
         </Button>
         <div className="h-6 w-px bg-gray-200" />
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={onSave}
-          className={isDirty ? 'ring-2 ring-blue-400' : ''}
-        >
-          {isDirty ? 'Save*' : 'Saved'}
-        </Button>
+        {!hideSaveButton && (
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onSave}
+            className={isDirty ? 'ring-2 ring-blue-400' : ''}
+          >
+            {isDirty ? 'Save*' : 'Saved'}
+          </Button>
+        )}
       </div>
 
       {/* Center - Device modes and Zoom controls */}
@@ -142,57 +148,63 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
       </div>
 
-      {/* Right side - Preview and Export */}
-      <div className="flex items-center gap-2">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onShowPreview}
-        >
-          Preview
-        </Button>
-        <div className="relative">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              const menu = e.currentTarget.nextElementSibling;
-              if (menu) {
-                menu.classList.toggle('hidden');
-              }
-            }}
-          >
-            Export ▼
-          </Button>
-          <div className="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-            <button
-              onClick={() => onExport('html')}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm rounded-t-lg"
+      {/* Right side - Preview and Export (only shown if callbacks provided) */}
+      {(onShowPreview || onExport) && (
+        <div className="flex items-center gap-2">
+          {onShowPreview && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onShowPreview}
             >
-              Export as HTML
-            </button>
-            <button
-              onClick={() => onExport('json')}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t"
-            >
-              Export as JSON
-            </button>
-            <button
-              onClick={() => onExport('mjml')}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t"
-            >
-              Export as MJML
-            </button>
-            <button
-              onClick={() => onExport('amp')}
-              className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t rounded-b-lg"
-            >
-              Export as AMP
-            </button>
-          </div>
+              Preview
+            </Button>
+          )}
+          {onExport && (
+            <div className="relative">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const menu = e.currentTarget.nextElementSibling;
+                  if (menu) {
+                    menu.classList.toggle('hidden');
+                  }
+                }}
+              >
+                Export ▼
+              </Button>
+              <div className="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                <button
+                  onClick={() => onExport('html')}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm rounded-t-lg"
+                >
+                  Export as HTML
+                </button>
+                <button
+                  onClick={() => onExport('json')}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t"
+                >
+                  Export as JSON
+                </button>
+                <button
+                  onClick={() => onExport('mjml')}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t"
+                >
+                  Export as MJML
+                </button>
+                <button
+                  onClick={() => onExport('amp')}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t rounded-b-lg"
+                >
+                  Export as AMP
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

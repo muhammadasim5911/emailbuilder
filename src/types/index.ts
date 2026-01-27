@@ -287,3 +287,43 @@ export interface ApiResponse<T> {
   error?: string;
   message?: string;
 }
+
+// Merge Tags (for library integration)
+export interface MergeTag {
+  id: string;
+  label: string;
+  value: string;
+  category: 'user' | 'system' | 'custom';
+  trigger: string; // Configurable trigger character(s) from parent app
+  description?: string;
+}
+
+// Save Data (returned by onSave callback)
+export interface SaveData {
+  template: EmailTemplate;
+  html: string;
+  json: string;
+  mjml?: string;
+}
+
+// Email Template Builder Props (for library usage)
+export interface EmailTemplateBuilderProps {
+  // Initial data
+  initialTemplate?: EmailTemplate;
+  
+  // Merge tags configuration
+  mergeTags?: MergeTag[];
+  mergeTagTriggers?: string[]; // e.g., ['@', '#', '{{']
+  
+  // Callbacks
+  onChange?: (template: EmailTemplate) => void;
+  onSave?: (data: SaveData) => void;
+  
+  // UI customization
+  readOnly?: boolean;
+  hideToolbar?: boolean;
+  hideElementsPanel?: boolean;
+  hideSettingsPanel?: boolean;
+  hideSaveButton?: boolean;
+  hideTemplatesButton?: boolean;
+}

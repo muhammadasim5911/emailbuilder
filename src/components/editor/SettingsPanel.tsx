@@ -1,6 +1,7 @@
 
-import React from 'react';
-import type { EmailElement } from '../../types';
+import React, { useRef, useState } from 'react';
+import type { EmailElement, MergeTag } from '../../types';
+import { useMergeTags } from '../../hooks/useMergeTags';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
@@ -9,6 +10,111 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Separator } from '../ui/separator';
 // import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent } from '../ui/card';
+
+// Text Content Editor with Merge Tag Support
+interface TextContentEditorProps {
+  content: string;
+  onUpdate: (content: string) => void;
+}
+
+const TextContentEditorWithMergeTags: React.FC<TextContentEditorProps> = ({ content, onUpdate }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const {
+    showDropdown,
+    filteredTags,
+    selectedIndex,
+    handleInputChange,
+    handleKeyDown,
+    selectTag,
+    closeDropdown,
+  } = useMergeTags();
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value;
+    const newCursorPos = e.target.selectionStart;
+    
+    onUpdate(newContent);
+    setCursorPosition(newCursorPos);
+    handleInputChange(newContent, newCursorPos);
+  };
+
+  const handleInsertTag = (tag: MergeTag) => {
+    if (!textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    // Find the trigger character position
+    const textBeforeCursor = text.substring(0, start);
+    let triggerIndex = -1;
+    
+    // Find the last trigger character
+    const triggers = ['@', '#', '{{'];
+    for (const trigger of triggers) {
+      const lastIndex = textBeforeCursor.lastIndexOf(trigger);
+      if (lastIndex > triggerIndex) {
+        triggerIndex = lastIndex;
+      }
+    }
+
+    if (triggerIndex !== -1) {
+      // Replace from trigger to cursor with the merge tag value
+      const newText = text.substring(0, triggerIndex) + tag.value + text.substring(end);
+      onUpdate(newText);
+      
+      // Set cursor position after the inserted tag
+      setTimeout(() => {
+        const newCursorPos = triggerIndex + tag.value.length;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+        textarea.focus();
+      }, 0);
+    }
+  };
+
+  return (
+    <div className="grid gap-2 relative">
+      <Label>Content</Label>
+      <div className="relative">
+        <textarea
+          ref={textareaRef}
+          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          rows={3}
+          value={content}
+          onChange={handleChange}
+          onKeyDown={(e) => handleKeyDown(e, handleInsertTag)}
+          onBlur={() => setTimeout(closeDropdown, 200)} // Delay to allow click on dropdown
+          placeholder="Type @ or # to insert merge tags"
+        />
+        
+        {/* Merge Tag Dropdown */}
+        {showDropdown && filteredTags.length > 0 && (
+          <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-auto">
+            {filteredTags.map((tag, index) => (
+              <button
+                key={tag.id}
+                type="button"
+                className={`w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors ${
+                  index === selectedIndex ? 'bg-accent' : ''
+                }`}
+                onClick={() => selectTag(tag, handleInsertTag)}
+                onMouseEnter={() => {}}
+              >
+                <div className="font-medium">{tag.label}</div>
+                {tag.description && (
+                  <div className="text-xs text-muted-foreground">{tag.description}</div>
+                )}
+                <div className="text-xs text-muted-foreground mt-0.5">{tag.value}</div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 interface SettingsPanelProps {
   element: EmailElement | null;
@@ -211,16 +317,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ element, onUpdate 
             <TabsContent value="content" className="space-y-4">
               {element.type === 'text' && (
                 <>
-                  <div className="grid gap-2">
-                      <Label>Content</Label>
-                      <textarea
-                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        rows={3}
-                        value={(element as any).content}
-                        onChange={(e) => onUpdate({ content: e.target.value } as any)}
-                        placeholder="Text content"
-                      />
-                  </div>
+                  <TextContentEditorWithMergeTags
+                    content={(element as any).content}
+                    onUpdate={(content) => onUpdate({ content } as any)}
+                  />
                   <div className="grid gap-2">
                      <Label>Font Family</Label>
                      <Select
@@ -272,8 +372,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ element, onUpdate 
                         {['left', 'center', 'right', 'justify'].map((align) => (
                              <button
                                 key={align}
-                                onClick={() => onUpdate({ align } as any)}
-                                className={`flex-1 p-1 rounded text-sm capitalize transition-all ${ (element as any).align === align ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                                onClick={() => onUpdate({ textAlign: align } as any)}
+                                className={`flex-1 p-1 rounded text-sm capitalize transition-all ${ (element as any).textAlign === align ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                              >
                                 {align}
                              </button>

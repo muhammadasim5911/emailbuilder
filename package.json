@@ -1,8 +1,14 @@
 {
-  "name": "emailtemplatebuilder",
-  "private": true,
-  "version": "0.0.0",
+  "name": "email-template-builder",
+  "version": "1.0.0",
   "type": "module",
+  "main": "./src/components/EmailTemplateBuilder.tsx",
+  "exports": {
+    ".": "./src/components/EmailTemplateBuilder.tsx",
+    "./types": "./src/types/index.ts",
+    "./store": "./src/store/index.ts",
+    "./utils": "./src/utils/index.ts"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

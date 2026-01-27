@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { EmailTemplate, EmailElement, EditorState, User, FeatureFlags } from '../types';
+import type { EmailTemplate, EmailElement, EditorState, User, FeatureFlags, MergeTag } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 // Default feature flags for free tier
@@ -605,5 +605,31 @@ export const useTemplateLibraryStore = create<TemplateLibraryStore>((set, get) =
 
   getTemplate: (id: string) => {
     return get().templates.find((t) => t.id === id);
+  },
+}));
+
+// Create Merge Tag Store (for library integration)
+interface MergeTagStore {
+  mergeTags: MergeTag[];
+  mergeTagTriggers: string[];
+  setMergeTags: (tags: MergeTag[]) => void;
+  setMergeTagTriggers: (triggers: string[]) => void;
+  getMergeTagsByTrigger: (trigger: string) => MergeTag[];
+}
+
+export const useMergeTagStore = create<MergeTagStore>((set, get) => ({
+  mergeTags: [],
+  mergeTagTriggers: ['@', '#'], // Default triggers
+
+  setMergeTags: (tags: MergeTag[]) => {
+    set({ mergeTags: tags });
+  },
+
+  setMergeTagTriggers: (triggers: string[]) => {
+    set({ mergeTagTriggers: triggers });
+  },
+
+  getMergeTagsByTrigger: (trigger: string) => {
+    return get().mergeTags.filter((tag) => tag.trigger === trigger);
   },
 }));
