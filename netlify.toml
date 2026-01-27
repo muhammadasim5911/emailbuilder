@@ -8,9 +8,8 @@
 # Environment variables
 [build.environment]
   NODE_VERSION = "22"
+  # Use npm ci to properly install optional dependencies
   NPM_FLAGS = "--legacy-peer-deps"
-  # Force npm instead of yarn
-  NPM_USE_PRODUCTION = "false"
   
 # Redirect all routes to index.html for SPA routing
 [[redirects]]
