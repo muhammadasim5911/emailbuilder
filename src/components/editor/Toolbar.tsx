@@ -210,7 +210,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             variant="primary"
             size="sm"
             onClick={onSave}
-            className={isDirty ? 'ring-2 ring-blue-400' : ''}
+            className={'ring-2 ring-blue-400'}
           >
             Save
           </Button>
