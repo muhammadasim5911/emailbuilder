@@ -55,10 +55,7 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ onAddElement, isPr
   const handleAddElement = (type: string, _isFree: boolean) => {
     // All elements enabled for testing
     const elementData = createDefaultElement(type);
-    onAddElement({
-      ...elementData,
-      type: type as any,
-    } as EmailElement);
+    onAddElement(elementData as EmailElement);
   };
 
   // Filter elements based on search

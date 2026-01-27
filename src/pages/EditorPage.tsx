@@ -401,12 +401,12 @@ export const EditorPage: React.FC = () => {
           }}
           onAddElementAtIndex={(elementType, index) => {
             const elementData = createDefaultElement(elementType);
-            addElementAtIndex({ ...elementData, type: elementType } as any, index);
+            addElementAtIndex(elementData as any, index);
             showToast(`${elementType} added`, 'success');
           }}
           onAddChild={(parentId, elementType) => {
             const elementData = createDefaultElement(elementType);
-            addChildElement(parentId, { ...elementData, type: elementType } as any);
+            addChildElement(parentId, elementData as any);
             showToast(`${elementType} added to column`, 'success');
           }}
         />
