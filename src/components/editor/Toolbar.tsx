@@ -205,6 +205,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           )}
         </div>
       )} */}
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onSave}
+            className={isDirty ? 'ring-2 ring-blue-400' : ''}
+          >
+            Save
+          </Button>
     </div>
   );
 };
