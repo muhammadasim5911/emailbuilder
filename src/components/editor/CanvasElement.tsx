@@ -140,7 +140,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       onClick={handleClick}
       className={clsx(
         'relative transition-all cursor-pointer group',
-        isSelected && 'ring-2 ring-blue-500 ring-offset-2 bg-blue-50/30',
+        isSelected && 'ring-2 ring-blue-500 bg-blue-50/10',
         !isSelected && 'hover:ring-1 hover:ring-blue-300',
         isDragging && 'opacity-50',
       )}

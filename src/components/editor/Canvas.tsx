@@ -151,10 +151,42 @@ export const Canvas: React.FC<CanvasProps> = ({
             transform: `scale(${zoom / 100})`,
             transformOrigin: 'top center',
           }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            const elementType = e.dataTransfer.getData('elementType');
+            if (elementType && onAddElementAtIndex) {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const scale = zoom / 100;
+              const y = (e.clientY - rect.top) / scale;
+              
+              // Find insertion index by comparing Y to existing elements
+              let dropIndex = template.elements.length;
+              const canvasElements = e.currentTarget.children[0].children; // Access elements within SortableContext
+              
+              for (let i = 0; i < template.elements.length; i++) {
+                const elementId = template.elements[i].id;
+                const node = document.querySelector(`[data-element-id="${elementId}"]`);
+                if (node) {
+                  const nodeRect = node.getBoundingClientRect();
+                  const nodeCenterY = (nodeRect.top - rect.top + nodeRect.height / 2) / scale;
+                  if (y < nodeCenterY) {
+                    dropIndex = i;
+                    break;
+                  }
+                }
+              }
+              
+              onAddElementAtIndex(elementType, dropIndex);
+            }
+          }}
         >
             {/* Email Content Area */}
             <div
-              className="bg-white min-h-[800px] relative"
+              className="bg-white min-h-[800px] relative flex flex-col"
               style={{
                 backgroundColor: template.defaultBackgroundColor,
               }}

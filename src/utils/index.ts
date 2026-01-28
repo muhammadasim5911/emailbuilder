@@ -519,7 +519,8 @@ export const createDefaultElement = (type: string): Partial<EmailElement> => {
             } as any
         ],
         width: '100%',
-        gap: 10,
+        padding: { top: 0, right: 0, bottom: 0, left: 0 },
+        gap: 0,
       };
 
     case 'column':
