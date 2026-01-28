@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { createDefaultElement } from '../../utils';
+// import { createDefaultElement } from '../../utils';
 import type { EmailElement } from '../../types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 // import { ScrollArea } from '../ui/scroll-area';
-import { Separator } from '../ui/separator';
+// import { Separator } from '../ui/separator';
 import { cn } from '../../lib/utils';
-import { Type, Image, MousePointerClick, Minus, Square, Columns, LayoutGrid, ArrowDownToLine, Table2, FormInput, Timer, Share2, Code2, MenuSquare, Film } from 'lucide-react';
+import { Type, Image, MousePointerClick, Minus, Square, LayoutGrid, ArrowDownToLine, Film } from 'lucide-react';
 
 const ELEMENTS_GROUPS = [
   {
@@ -45,18 +45,11 @@ const ELEMENTS_GROUPS = [
 ];
 
 interface ElementsPanelProps {
-  onAddElement: (element: EmailElement) => void;
   isPro: boolean;
 }
 
-export const ElementsPanel: React.FC<ElementsPanelProps> = ({ onAddElement, isPro }) => {
+export const ElementsPanel: React.FC<ElementsPanelProps> = ({ isPro }) => {
   const [searchQuery, setSearchQuery] = useState('');
-
-  const handleAddElement = (type: string, _isFree: boolean) => {
-    // All elements enabled for testing
-    const elementData = createDefaultElement(type);
-    onAddElement(elementData as EmailElement);
-  };
 
   // Filter elements based on search
   const filteredGroups = ELEMENTS_GROUPS.map(group => ({
@@ -101,7 +94,6 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ onAddElement, isPr
                         e.dataTransfer.setData('elementType', element.id);
                         e.dataTransfer.effectAllowed = 'copy';
                       }}
-                      onClick={() => handleAddElement(element.id, element.isFree)}
                       className={cn(
                         "h-20 flex flex-col items-center justify-center gap-2 p-2 hover:border-primary hover:bg-primary/5 transition-all cursor-grab active:cursor-grabbing",
                         !element.isFree && !isPro && "opacity-50"
@@ -122,3 +114,4 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ onAddElement, isPr
 };
 
 export default ElementsPanel;
+

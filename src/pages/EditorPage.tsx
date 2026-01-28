@@ -396,7 +396,6 @@ export const EditorPage: React.FC = () => {
         {/* Left Sidebar - Elements */}
         <div className="w-64 bg-background rounded-lg shadow-sm border border-border overflow-hidden flex flex-col">
           <ElementsPanel
-            onAddElement={addElement}
             isPro={features.advancedElements}
           />
         </div>
