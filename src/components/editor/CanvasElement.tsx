@@ -155,7 +155,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       data-element-id={element.id}
     >
       {/* Content Renderers */}
-      {element.type === 'text' && <TextElementRenderer element={element as any} />}
+      {element.type === 'text' && <TextElementRenderer element={element as any} isSelected={isSelected} onUpdate={onUpdate} />}
       {element.type === 'image' && <ImageElementRenderer element={element as any} />}
       {element.type === 'button' && <ButtonElementRenderer element={element as any} />}
       {element.type === 'divider' && <DividerElementRenderer element={element as any} />}
@@ -342,21 +342,55 @@ const SectionElementRenderer: React.FC<{ element: any, renderChildren: (children
 );
 
 // ... Simple Renderers (Text, Image, etc - kept same but cleaner) ...
-const TextElementRenderer: React.FC<{ element: any }> = ({ element }) => (
-  <div
-    style={{
-      fontSize: `${element.fontSize}px`,
-      fontFamily: element.fontFamily,
-      color: element.color,
-      textAlign: element.textAlign || 'left',
-      fontWeight: element.fontWeight,
-      lineHeight: element.lineHeight,
-      fontStyle: element.fontStyle,
-      wordBreak: 'break-word',
-    }}
-    dangerouslySetInnerHTML={{ __html: element.content }}
-  />
-);
+const TextElementRenderer: React.FC<{ element: any, isSelected?: boolean, onUpdate?: (id: string, updates: any) => void }> = ({ element, isSelected, onUpdate }) => {
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (onUpdate) {
+      onUpdate(element.id, { content: e.currentTarget.innerHTML });
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isSelected) {
+      e.stopPropagation();
+    }
+  };
+
+  // Only use dangerouslySetInnerHTML when NOT selected (or initially)
+  // If we are selected (editing), we want the DOM to be uncontrolled to let user type
+  // However, React needs initial content.
+  // We can use a ref to track if we are already editing to avoid re-setting HTML
+  // But simpler: just suppress updates while selected? No, that prevents other updates.
+  // Standard React contentEditable fix: only update if data changed significantly or not focused.
+  // But for now, let's just stop propagation of Space.
+  
+  return (
+    <div
+      contentEditable={isSelected}
+      suppressContentEditableWarning={true}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      style={{
+        fontSize: `${element.fontSize}px`,
+        fontFamily: element.fontFamily,
+        color: element.color,
+        textAlign: element.textAlign || 'left',
+        fontWeight: element.fontWeight,
+        lineHeight: element.lineHeight,
+        fontStyle: element.fontStyle,
+        wordBreak: 'break-word',
+        outline: 'none', // Remove default focus outline
+        cursor: isSelected ? 'text' : 'default',
+        minHeight: '1em', // Ensure it's clickable even if empty
+      }}
+      dangerouslySetInnerHTML={{ __html: element.content }}
+      onClick={(e) => {
+          if (isSelected) {
+              e.stopPropagation(); // Allow text selection/editing without triggering parent select
+          }
+      }}
+    />
+  );
+};
 
 const ImageElementRenderer: React.FC<{ element: any }> = ({ element }) => (
   <img
