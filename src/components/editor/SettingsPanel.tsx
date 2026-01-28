@@ -1,6 +1,7 @@
 
+
 import React, { useRef, useState } from 'react';
-import type { EmailElement, MergeTag } from '../../types';
+import type { EmailElement, MergeTag, RowElement } from '../../types';
 import { useMergeTags } from '../../hooks/useMergeTags';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
@@ -10,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Separator } from '../ui/separator';
 // import { ScrollArea } from '../ui/scroll-area';
 import { Card, CardContent } from '../ui/card';
+import { RowColumnProperties } from './RowColumnProperties';
 
 // Text Content Editor with Merge Tag Support
 interface TextContentEditorProps {
@@ -129,6 +131,40 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ element, onUpdate 
       <Card className="h-full border-0 shadow-none rounded-none bg-background/50">
         <CardContent className="h-full flex items-center justify-center text-muted-foreground p-6">
           <p className="text-sm">Select an element to edit</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Special handling for Row elements - use RowColumnProperties
+  if (element.type === 'row') {
+    return (
+      <div className="h-full flex flex-col bg-background border-l">
+        <div className="p-4 border-b">
+          <h2 className="font-semibold tracking-tight">Properties</h2>
+          <p className="text-xs text-muted-foreground mt-1">{element.label || 'Row'}</p>
+        </div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="p-4">
+            <RowColumnProperties 
+              element={element as RowElement} 
+              onUpdate={onUpdate}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Prevent showing properties for Column elements - they should be edited via the Row
+  if (element.type === 'column') {
+    return (
+      <Card className="h-full border-0 shadow-none rounded-none bg-background/50">
+        <CardContent className="h-full flex items-center justify-center text-muted-foreground p-6">
+          <div className="text-center space-y-2">
+            <p className="text-sm font-medium">Column Properties</p>
+            <p className="text-xs">Select the parent row to edit column properties</p>
+          </div>
         </CardContent>
       </Card>
     );

@@ -5,7 +5,7 @@ import { Toolbar, Canvas, ElementsPanel, SettingsPanel, LayersPanel, TemplateLib
 import { Button } from '../components/ui/button';
 import { Toast } from '../components/base';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
-import { exportTemplate, createDefaultElement, findElementDeep, parseEmailHTML } from '../utils';
+import { exportTemplate, createDefaultElement, findElementDeep, findParentElement, parseEmailHTML } from '../utils';
 import type { ExportOptions } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -262,6 +262,27 @@ export const EditorPage: React.FC = () => {
     ? findElementDeep(currentTemplate?.elements || [], selectedElementId)
     : null;
 
+  // Smart selection: when clicking a column, select its parent row instead
+  const handleElementSelect = (id: string | null) => {
+    if (!id || !currentTemplate) {
+      selectElement(id);
+      return;
+    }
+
+    const element = findElementDeep(currentTemplate.elements, id);
+    if (element?.type === 'column') {
+      // Find parent row and select it instead
+      const parentRow = findParentElement(currentTemplate.elements, id);
+      if (parentRow && parentRow.type === 'row') {
+        selectElement(parentRow.id);
+        return;
+      }
+    }
+
+    selectElement(id);
+  };
+
+
   const { features } = useUserStore();
 
   // Initialize with default template if needed
@@ -387,7 +408,7 @@ export const EditorPage: React.FC = () => {
           zoom={zoom}
           deviceMode={deviceMode}
           showGrid={false}
-          onElementSelect={selectElement}
+          onElementSelect={handleElementSelect}
           onElementUpdate={updateElement}
           onElementDelete={deleteElement}
           onCanvasClick={() => selectElement(null)}

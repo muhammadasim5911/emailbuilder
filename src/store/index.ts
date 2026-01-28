@@ -43,6 +43,8 @@ interface EditorStore extends EditorState {
   duplicateElement: (id: string) => void;
   reorderElements: (oldIndex: number, newIndex: number) => void;
   moveElement: (activeId: string, overId: string) => void;
+  updateRowLayout: (rowId: string, columnWidths: string[]) => void;
+  deleteColumn: (rowId: string, columnId: string) => void;
 
   // Editor State Actions
   setZoom: (zoom: number) => void;
@@ -498,6 +500,140 @@ export const useEditorStore = create<EditorStore>((set, get) => {
       });
       // Don't add to history on every drag frame, only drag end calls this? 
       // ideally moveElement is called on dragEnd.
+      addToHistory();
+    },
+
+    updateRowLayout: (rowId: string, columnWidths: string[]) => {
+      set((state) => {
+        if (!state.currentTemplate) return state as any;
+
+        const updateRecursive = (elements: EmailElement[]): EmailElement[] => {
+          return elements.map((el) => {
+            if (el.id === rowId && el.type === 'row') {
+              // Found the row
+              let currentChildren = 'children' in el && (el as any).children ? [...(el as any).children] : [];
+              
+              // Adjust number of columns
+              if (currentChildren.length < columnWidths.length) {
+                // Add needed columns
+                const needed = columnWidths.length - currentChildren.length;
+                for (let i = 0; i < needed; i++) {
+                  currentChildren.push({
+                    id: uuidv4(),
+                    type: 'column',
+                    label: 'Column',
+                    children: [],
+                    width: columnWidths[currentChildren.length],
+                    padding: { top: 20, right: 20, bottom: 20, left: 20 },
+                    margin: { top: 0, right: 0, bottom: 0, left: 0 },
+                    visible: true,
+                    locked: false,
+                  } as any);
+                }
+              } else if (currentChildren.length > columnWidths.length) {
+                // Remove excess columns
+                currentChildren = currentChildren.slice(0, columnWidths.length);
+              }
+
+              // Update widths and ensure padding consistency for symmetry
+              currentChildren = currentChildren.map((child, index) => {
+                // Determine if we should force default padding (if it's missing or all zeros)
+                const isZeroPadding = child.padding && 
+                  child.padding.top === 0 && 
+                  child.padding.right === 0 && 
+                  child.padding.bottom === 0 && 
+                  child.padding.left === 0;
+                  
+                const padding = (!child.padding || isZeroPadding) 
+                  ? { top: 20, right: 20, bottom: 20, left: 20 } 
+                  : child.padding;
+
+                return {
+                  ...child,
+                  width: columnWidths[index],
+                  padding: padding,
+                } as any;
+              });
+
+              return {
+                ...el,
+                children: currentChildren
+              } as EmailElement;
+            }
+            
+            if ('children' in el && (el as any).children) {
+              return {
+                ...el,
+                children: updateRecursive((el as any).children),
+              } as EmailElement;
+            }
+            return el;
+          });
+        };
+
+        return {
+          currentTemplate: {
+            ...state.currentTemplate,
+            elements: updateRecursive(state.currentTemplate.elements),
+            updatedAt: new Date().toISOString(),
+          } as EmailTemplate,
+          isDirty: true,
+        } as any;
+      });
+      addToHistory();
+    },
+
+    deleteColumn: (rowId: string, columnId: string) => {
+      set((state) => {
+        if (!state.currentTemplate) return state as any;
+
+        const updateRecursive = (elements: EmailElement[]): EmailElement[] => {
+          return elements.map((el) => {
+            if (el.id === rowId && el.type === 'row') {
+              // Found the row
+              let currentChildren = 'children' in el && (el as any).children ? [...(el as any).children] : [];
+              
+              // Filter out the column to delete
+              const filteredChildren = currentChildren.filter((child) => child.id !== columnId);
+              
+              // If no columns left, we need to delete this row
+              if (filteredChildren.length === 0) {
+                return null as any; // Mark for deletion
+              }
+              
+              // Redistribute widths equally among remaining columns
+              const newWidth = `${(100 / filteredChildren.length).toFixed(2)}%`;
+              const redistributedChildren = filteredChildren.map((child) => ({
+                ...child,
+                width: newWidth
+              }));
+
+              return {
+                ...el,
+                children: redistributedChildren
+              } as EmailElement;
+            }
+            
+            if ('children' in el && (el as any).children) {
+              return {
+                ...el,
+                children: updateRecursive((el as any).children),
+              } as EmailElement;
+            }
+            return el;
+          }).filter(el => el !== null); // Remove null elements (deleted rows)
+        };
+
+        return {
+          currentTemplate: {
+            ...state.currentTemplate,
+            elements: updateRecursive(state.currentTemplate.elements),
+            updatedAt: new Date().toISOString(),
+          } as EmailTemplate,
+          isDirty: true,
+          selectedElementId: state.selectedElementId === columnId ? null : state.selectedElementId,
+        } as any;
+      });
       addToHistory();
     },
 

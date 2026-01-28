@@ -44,6 +44,31 @@ export const findElementDeep = (
 };
 
 /**
+ * Find parent element of a given element ID
+ */
+export const findParentElement = (
+  elements: EmailElement[],
+  childId: string,
+  parent: EmailElement | null = null
+): EmailElement | null => {
+  for (const element of elements) {
+    // Check if this element has the child we're looking for
+    if ('children' in element && element.children) {
+      const hasChild = element.children.some(child => child.id === childId);
+      if (hasChild) {
+        return element;
+      }
+      
+      // Recursively search in children
+      const found = findParentElement(element.children, childId, element);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+
+/**
  * Calculate total content height
  */
 export const calculateTemplateHeight = (template: EmailTemplate | null): number => {
@@ -504,6 +529,7 @@ export const createDefaultElement = (type: string): Partial<EmailElement> => {
         type: 'column',
         children: [],
         width: '50%',
+        padding: { top: 20, right: 20, bottom: 20, left: 20 },
       };
 
     default:

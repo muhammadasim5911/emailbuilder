@@ -101,7 +101,7 @@ export interface SectionElement extends BaseElementProps {
 export interface ColumnElement extends BaseElementProps {
   type: 'column';
   children: EmailElement[];
-  width: number; // percentage or pixel
+  width: number | string; // percentage or pixel
 }
 
 // Row Element

@@ -90,8 +90,13 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 
   const baseStyle: React.CSSProperties = {
     backgroundColor: element.backgroundColor,
-    width: typeof element.width === 'number' ? `${element.width}px` : element.width || '100%',
-    height: typeof element.height === 'number' ? `${element.height}px` : element.height,
+    width: element.type === 'column' 
+      ? undefined 
+      : (typeof element.width === 'number' ? `${element.width}px` : element.width || '100%'),
+    flexBasis: element.type === 'column' ? (element.width || '50%') : undefined,
+    flexShrink: element.type === 'column' ? 0 : undefined,
+    flexGrow: element.type === 'column' ? 0 : undefined,
+    height: typeof element.height === 'number' ? `${element.height}px` : element.height || '100%',
     padding: element.padding
       ? `${element.padding.top}px ${element.padding.right}px ${element.padding.bottom}px ${element.padding.left}px`
       : undefined,
@@ -259,20 +264,20 @@ const ColumnElementRenderer: React.FC<{
         display: 'flex',
         flexDirection: 'column',
         alignItems: element.horizontalAlign === 'center' ? 'center' : element.horizontalAlign === 'right' ? 'flex-end' : 'flex-start',
-        width: element.width || '50%',
         verticalAlign: 'top',
-        padding: '10px',
         minHeight: '80px',
+        width: '100%',
         height: '100%',
-        outline: isNativeOver ? '2px dashed #0ea5e9' : '1px dashed #e2e8f0',
+        outline: isNativeOver ? '2px dashed #0ea5e9' : 'none',
         backgroundColor: isNativeOver ? '#f0f9ff' : (element.backgroundColor || 'transparent'),
         transition: 'all 0.2s',
+        boxSizing: 'border-box',
       }}
     >
       {element.children && element.children.length > 0 ? (
         renderChildren(element.children)
       ) : (
-        <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-sm text-blue-500 border-2 border-dashed border-blue-200 rounded p-6 bg-blue-50/50">
+        <div className="w-full flex-1 flex flex-col items-center justify-center gap-3 text-sm text-blue-500 border-2 border-dashed border-blue-200 rounded p-6 bg-blue-50/50">
           <p className="text-center">No content here. Drag content from right.</p>
           <button 
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm font-medium"
@@ -298,6 +303,10 @@ const RowElementRenderer: React.FC<{ element: any, renderChildren: (children: an
       gap: `${element.gap || 0}px`,
       minHeight: '80px',
       width: '100%',
+      backgroundColor: element.backgroundColor || 'transparent',
+      backgroundImage: element.imageUrl ? `url(${element.imageUrl})` : 'none',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
     }}
   >
     {element.children && element.children.length > 0 ? (
@@ -313,7 +322,6 @@ const RowElementRenderer: React.FC<{ element: any, renderChildren: (children: an
 const SectionElementRenderer: React.FC<{ element: any, renderChildren: (children: any[]) => React.ReactNode }> = ({ element, renderChildren }) => (
   <div
     style={{
-      padding: '20px',
       minHeight: '100px',
     }}
   >
