@@ -16,21 +16,15 @@ export interface BaseElementProps {
   label: string;
   width?: number | string;
   height?: number | string;
-  padding?: { top: number; right: number; bottom: number; left: number };
-  margin?: { top: number; right: number; bottom: number; left: number };
-  backgroundColor?: string;
-  borderColor?: string;
-  borderWidth?: number;
-  borderRadius?: number;
-  opacity?: number;
-  shadow?: boolean;
-  shadowColor?: string;
-  shadowBlur?: number;
   shadowX?: number;
   shadowY?: number;
   visible?: boolean;
   locked?: boolean;
   zIndex?: number;
+  padding?: number | { top: number; right: number; bottom: number; left: number };
+  margin?: number | { top: number; right: number; bottom: number; left: number };
+  borderRadius?: number | { topLeft: number; topRight: number; bottomRight: number; bottomLeft: number };
+  borderStyle?: 'solid' | 'dashed' | 'dotted';
 }
 
 // Text Element
@@ -64,17 +58,23 @@ export interface ButtonElement extends BaseElementProps {
   label: string;
   text: string;
   link: string;
+  actionType?: string;
+  target?: '_blank' | '_self';
+  fullWidth?: boolean;
   style: ButtonStyle;
   fontSize: FontSize;
   fontFamily: FontFamily;
   fontWeight: 'normal' | 'bold' | '500' | '600' | '700' | '800';
+  lineHeight?: number;
   color: string;
   backgroundColor?: string;
   borderColor?: string;
   borderWidth?: number;
-  borderRadius?: number;
-  paddingX: number;
-  paddingY: number;
+  borderStyle?: 'solid' | 'dashed' | 'dotted';
+  padding?: number | { top: number; right: number; bottom: number; left: number };
+  borderRadius?: number | { topLeft: number; topRight: number; bottomRight: number; bottomLeft: number };
+  paddingX?: number; // Legacy, will keep for compatibility
+  paddingY?: number; // Legacy
 }
 
 // Divider Element

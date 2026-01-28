@@ -1,5 +1,5 @@
 import React from 'react';
-import type { EmailElement } from '../../types';
+import type { EmailElement, ButtonElement } from '../../types';
 import clsx from 'clsx';
 
 interface CanvasElementProps {
@@ -88,6 +88,18 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     opacity: isDragging ? 0.3 : 1,
   };
 
+  const getPaddingString = (padding: any) => {
+    if (!padding) return undefined;
+    if (typeof padding === 'number') return `${padding}px`;
+    return `${padding.top || 0}px ${padding.right || 0}px ${padding.bottom || 0}px ${padding.left || 0}px`;
+  };
+
+  const getRadiusString = (radius: any) => {
+    if (!radius) return undefined;
+    if (typeof radius === 'number') return `${radius}px`;
+    return `${radius.topLeft || 0}px ${radius.topRight || 0}px ${radius.bottomRight || 0}px ${radius.bottomLeft || 0}px`;
+  };
+
   const baseStyle: React.CSSProperties = {
     backgroundColor: element.backgroundColor,
     width: element.type === 'column' 
@@ -96,17 +108,13 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     flexBasis: element.type === 'column' ? (element.width || '50%') : undefined,
     flexShrink: element.type === 'column' ? 0 : undefined,
     flexGrow: element.type === 'column' ? 0 : undefined,
-    height: typeof element.height === 'number' ? `${element.height}px` : element.height || '100%',
-    padding: element.padding
-      ? `${element.padding.top}px ${element.padding.right}px ${element.padding.bottom}px ${element.padding.left}px`
-      : undefined,
-    margin: element.margin
-      ? `${element.margin.top}px ${element.margin.right}px ${element.margin.bottom}px ${element.margin.left}px`
-      : undefined,
+    height: typeof element.height === 'number' ? `${element.height}px` : element.height || 'auto',
+    padding: getPaddingString(element.padding),
+    margin: getPaddingString(element.margin),
     borderColor: element.borderColor,
     borderWidth: element.borderWidth ? `${element.borderWidth}px` : undefined,
-    borderStyle: element.borderWidth ? 'solid' : undefined,
-    borderRadius: element.borderRadius ? `${element.borderRadius}px` : undefined,
+    borderStyle: element.borderStyle || (element.borderWidth ? 'solid' : undefined),
+    borderRadius: getRadiusString(element.borderRadius),
     backgroundImage: (element as any).imageUrl ? `url(${(element as any).imageUrl})` : undefined,
     backgroundSize: (element as any).imageUrl ? 'cover' : undefined,
     backgroundPosition: (element as any).imageUrl ? 'center' : undefined,
@@ -364,27 +372,39 @@ const ImageElementRenderer: React.FC<{ element: any }> = ({ element }) => (
   />
 );
 
-const ButtonElementRenderer: React.FC<{ element: any }> = ({ element }) => (
-  <div style={{ textAlign: element.align || 'center' }}>
-    <a
-      href={element.link}
-      onClick={(e) => e.preventDefault()}
-      style={{
-        display: 'inline-block',
-        padding: `${element.paddingY || 10}px ${element.paddingX || 16}px`,
-        backgroundColor: element.backgroundColor || '#0ea5e9',
-        color: element.color || '#ffffff',
-        textDecoration: 'none',
-        borderRadius: `${element.borderRadius || 4}px`,
-        fontSize: `${element.fontSize || 16}px`,
-        border: element.borderWidth ? `${element.borderWidth}px solid ${element.borderColor}` : 'none',
-        fontWeight: element.fontWeight,
-      }}
-    >
-      {element.text}
-    </a>
-  </div>
-);
+const ButtonElementRenderer: React.FC<{ element: any }> = ({ element }) => {
+  const btn = element as ButtonElement;
+  return (
+    <div style={{ textAlign: (btn as any).align || 'center' }}>
+      <a
+        href={btn.link}
+        target={btn.target || '_blank'}
+        onClick={(e) => e.preventDefault()}
+        style={{
+          display: btn.fullWidth ? 'block' : 'inline-block',
+          width: btn.fullWidth ? '100% border-box' : 'auto',
+          padding: typeof btn.padding === 'number' 
+            ? `${btn.padding}px` 
+            : `${btn.padding?.top ?? 10}px ${btn.padding?.right ?? 16}px ${btn.padding?.bottom ?? 10}px ${btn.padding?.left ?? 16}px`,
+          backgroundColor: btn.backgroundColor || '#0ea5e9',
+          color: btn.color || '#ffffff',
+          textDecoration: 'none',
+          borderRadius: typeof btn.borderRadius === 'number'
+            ? `${btn.borderRadius}px`
+            : `${btn.borderRadius?.topLeft || 0}px ${btn.borderRadius?.topRight || 0}px ${btn.borderRadius?.bottomRight || 0}px ${btn.borderRadius?.bottomLeft || 0}px`,
+          fontSize: `${btn.fontSize || 16}px`,
+          fontFamily: btn.fontFamily,
+          border: btn.borderWidth ? `${btn.borderWidth}px ${btn.borderStyle || 'solid'} ${btn.borderColor || 'transparent'}` : 'none',
+          fontWeight: btn.fontWeight,
+          lineHeight: btn.lineHeight || 1.2,
+          textAlign: 'center',
+        }}
+      >
+        {btn.text}
+      </a>
+    </div>
+  );
+};
 
 const DividerElementRenderer: React.FC<{ element: any }> = ({ element }) => (
   <div style={{ padding: '10px 0' }}>
