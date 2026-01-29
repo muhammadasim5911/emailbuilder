@@ -390,6 +390,17 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ element, onUpdate 
           <CollapsibleSection title="Action" defaultOpen={true}>
             <div className="grid gap-4">
               <div className="grid gap-1.5">
+                <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Button Text</Label>
+                <div className="flex bg-muted rounded-md overflow-hidden h-9">
+                  <input
+                    className="flex-1 bg-transparent px-3 text-sm focus:outline-none"
+                    value={btnEl.text || ''}
+                    onChange={(e) => onUpdate({ text: e.target.value })}
+                    placeholder="Click Here"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-1.5">
                 <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Action Type</Label>
                 <Select
                   value={btnEl.actionType || 'Open Website'}
@@ -473,9 +484,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ element, onUpdate 
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
-                   <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Width</Label>
+                   <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Auto Width</Label>
                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-muted-foreground font-bold uppercase mr-1">Auto On</span>
                       <button 
                         onClick={() => onUpdate({ fullWidth: !btnEl.fullWidth })}
                         className={`w-10 h-5 rounded-full relative transition-colors ${btnEl.fullWidth ? 'bg-blue-600' : 'bg-muted'}`}
@@ -484,6 +494,22 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ element, onUpdate 
                       </button>
                    </div>
                 </div>
+                {!btnEl.fullWidth && (
+                  <div className="grid gap-1.5">
+                    <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Width</Label>
+                    <div className="flex items-center gap-2">
+                       <input 
+                         type="range"
+                         min="10"
+                         max="100"
+                         value={typeof btnEl.width === 'string' && btnEl.width.includes('%') ? parseInt(btnEl.width) : 100}
+                         onChange={(e) => onUpdate({ width: `${e.target.value}%` })}
+                         className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-blue-600"
+                       />
+                       <span className="text-xs min-w-[35px] font-medium">{typeof btnEl.width === 'string' && btnEl.width.includes('%') ? parseInt(btnEl.width) : 100}%</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="grid gap-1.5 mt-2">
@@ -641,13 +667,27 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ element, onUpdate 
              <div className="grid gap-4">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Container Padding</Label>
-                  <button className="text-[10px] text-blue-500 hover:underline">More Options</button>
+                  <button 
+                    className="text-[10px] text-blue-500 hover:underline"
+                    onClick={() => setIsGranularPadding(!isGranularPadding)}
+                  >
+                    {isGranularPadding ? 'Simple Options' : 'More Options'}
+                  </button>
                 </div>
-                <NumericCounter
-                  label="All Sides"
-                  value={10}
-                  onChange={() => {}}
-                />
+                {!isGranularPadding ? (
+                  <NumericCounter
+                    label="All Sides"
+                    value={typeof btnEl.padding === 'object' && btnEl.padding !== null ? btnEl.padding.top : (btnEl.padding || 0)}
+                    onChange={(val) => onUpdate({ padding: { top: val, right: val, bottom: val, left: val } })}
+                  />
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <NumericCounter label="Top" value={typeof btnEl.padding === 'object' && btnEl.padding !== null ? btnEl.padding.top : (btnEl.padding || 0)} onChange={(val) => onUpdate({ padding: { ... (typeof btnEl.padding === 'object' ? btnEl.padding : { top: 0, right: 0, bottom: 0, left: 0 }), top: val } })} />
+                    <NumericCounter label="Right" value={typeof btnEl.padding === 'object' && btnEl.padding !== null ? btnEl.padding.right : (btnEl.padding || 0)} onChange={(val) => onUpdate({ padding: { ... (typeof btnEl.padding === 'object' ? btnEl.padding : { top: 0, right: 0, bottom: 0, left: 0 }), right: val } })} />
+                    <NumericCounter label="Bottom" value={typeof btnEl.padding === 'object' && btnEl.padding !== null ? btnEl.padding.bottom : (btnEl.padding || 0)} onChange={(val) => onUpdate({ padding: { ... (typeof btnEl.padding === 'object' ? btnEl.padding : { top: 0, right: 0, bottom: 0, left: 0 }), bottom: val } })} />
+                    <NumericCounter label="Left" value={typeof btnEl.padding === 'object' && btnEl.padding !== null ? btnEl.padding.left : (btnEl.padding || 0)} onChange={(val) => onUpdate({ padding: { ... (typeof btnEl.padding === 'object' ? btnEl.padding : { top: 0, right: 0, bottom: 0, left: 0 }), left: val } })} />
+                  </div>
+                )}
              </div>
           </CollapsibleSection>
         </div>

@@ -15,6 +15,7 @@ interface CanvasElementProps {
 }
 
 import { useSortable } from '@dnd-kit/sortable';
+import { useDroppable, useDndContext } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 
 // Dedicated drag handle component for rows
@@ -122,7 +123,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   };
 
   const baseStyle: React.CSSProperties = {
-    backgroundColor: element.backgroundColor,
+    backgroundColor: (element as any).backgroundColor,
     width: element.type === 'column' 
       ? undefined 
       : (typeof element.width === 'number' ? `${element.width}px` : element.width || '100%'),
@@ -132,15 +133,15 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     height: typeof element.height === 'number' ? `${element.height}px` : element.height || 'auto',
     padding: getPaddingString(element.padding),
     margin: getPaddingString(element.margin),
-    borderColor: element.borderColor,
-    borderWidth: element.borderWidth ? `${element.borderWidth}px` : undefined,
-    borderStyle: element.borderStyle || (element.borderWidth ? 'solid' : undefined),
+    borderColor: (element as any).borderColor,
+    borderWidth: (element as any).borderWidth ? `${(element as any).borderWidth}px` : undefined,
+    borderStyle: element.borderStyle || ((element as any).borderWidth ? 'solid' : undefined),
     borderRadius: getRadiusString(element.borderRadius),
     backgroundImage: (element as any).imageUrl ? `url(${(element as any).imageUrl})` : undefined,
     backgroundSize: (element as any).imageUrl ? 'cover' : undefined,
     backgroundPosition: (element as any).imageUrl ? 'center' : undefined,
     backgroundRepeat: (element as any).imageUrl ? 'no-repeat' : undefined,
-    opacity: element.opacity,
+    opacity: (element as any).opacity,
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 999 : 1,
@@ -273,9 +274,24 @@ const ColumnElementRenderer: React.FC<{
     renderChildren: (children: any[]) => React.ReactNode 
 }> = ({ element, onAddChild, renderChildren }) => {
   const [isNativeOver, setIsNativeOver] = React.useState(false);
+  
+  // Use dnd-kit's drop indicator
+  const { setNodeRef, isOver } = useDroppable({
+    id: element.id,
+    data: {
+      type: element.type,
+      accepts: ['text', 'image', 'button', 'divider', 'spacer', 'heading']
+    }
+  });
+  
+  // Get current drag context
+  const { active } = useDndContext();
+  const isSomethingBeingDragged = active !== null;
+  const isDraggedOver = isOver || isNativeOver;
 
   return (
     <div
+      ref={setNodeRef}
       onDragOver={(e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
@@ -309,12 +325,22 @@ const ColumnElementRenderer: React.FC<{
         minHeight: '80px',
         width: '100%',
         height: '100%',
-        outline: isNativeOver ? '2px dashed #0ea5e9' : 'none',
-        backgroundColor: isNativeOver ? '#f0f9ff' : (element.backgroundColor || 'transparent'),
+        outline: isDraggedOver ? '2px dashed #0ea5e9' : 'none',
+        backgroundColor: isDraggedOver ? '#f0f9ff' : (element.backgroundColor || 'transparent'),
         transition: 'all 0.2s',
         boxSizing: 'border-box',
+        position: 'relative',
       }}
     >
+      {/* Drop Indicator Overlay */}
+      {isDraggedOver && isSomethingBeingDragged && (
+        <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center">
+          <div className="bg-blue-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-xl animate-pulse">
+            Drop it here
+          </div>
+        </div>
+      )}
+      
       {element.children && element.children.length > 0 ? (
         renderChildren(element.children)
       ) : (
@@ -476,30 +502,42 @@ const ImageElementRenderer: React.FC<{ element: any }> = ({ element }) => {
 
 const ButtonElementRenderer: React.FC<{ element: any }> = ({ element }) => {
   const btn = element as ButtonElement;
+  
+  // Consolidate padding logic to support old paddingX/Y and new padding object
+  let paddingValue = '14px 28px'; // Default
+  if (btn.padding) {
+    if (typeof btn.padding === 'number') {
+      paddingValue = `${btn.padding}px`;
+    } else {
+      paddingValue = `${btn.padding.top ?? 14}px ${btn.padding.right ?? 28}px ${btn.padding.bottom ?? 14}px ${btn.padding.left ?? 28}px`;
+    }
+  } else if (btn.paddingX !== undefined || btn.paddingY !== undefined) {
+    paddingValue = `${btn.paddingY ?? 12}px ${btn.paddingX ?? 24}px`;
+  }
+
   return (
-    <div style={{ textAlign: (btn as any).align || 'center' }}>
+    <div style={{ textAlign: (btn as any).align || 'center', width: '100%' }}>
       <a
         href={btn.link}
         target={btn.target || '_blank'}
         onClick={(e) => e.preventDefault()}
         style={{
           display: btn.fullWidth ? 'block' : 'inline-block',
-          width: btn.fullWidth ? '100% border-box' : 'auto',
-          padding: typeof btn.padding === 'number' 
-            ? `${btn.padding}px` 
-            : `${btn.padding?.top ?? 10}px ${btn.padding?.right ?? 16}px ${btn.padding?.bottom ?? 10}px ${btn.padding?.left ?? 16}px`,
+          width: btn.fullWidth ? '100%' : (typeof btn.width === 'number' ? `${btn.width}px` : btn.width || 'auto'),
+          padding: paddingValue,
           backgroundColor: btn.backgroundColor || '#0ea5e9',
           color: btn.color || '#ffffff',
           textDecoration: 'none',
           borderRadius: typeof btn.borderRadius === 'number'
             ? `${btn.borderRadius}px`
             : `${btn.borderRadius?.topLeft || 0}px ${btn.borderRadius?.topRight || 0}px ${btn.borderRadius?.bottomRight || 0}px ${btn.borderRadius?.bottomLeft || 0}px`,
-          fontSize: `${btn.fontSize || 16}px`,
+          fontSize: `${btn.fontSize || 14}px`,
           fontFamily: btn.fontFamily,
           border: btn.borderWidth ? `${btn.borderWidth}px ${btn.borderStyle || 'solid'} ${btn.borderColor || 'transparent'}` : 'none',
-          fontWeight: btn.fontWeight,
+          fontWeight: btn.fontWeight || 'normal',
           lineHeight: btn.lineHeight || 1.2,
           textAlign: 'center',
+          boxSizing: 'border-box',
         }}
       >
         {btn.text}

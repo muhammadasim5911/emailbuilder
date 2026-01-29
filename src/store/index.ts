@@ -417,6 +417,32 @@ export const useEditorStore = create<EditorStore>((set, get) => {
         // Deep clone the elements tree
         const newElements = JSON.parse(JSON.stringify(state.currentTemplate.elements));
 
+        // Validation: Check if child type can be nested in parent type
+        const canBeChild = (childType: string, parentType: string): boolean => {
+          // Define valid parent-child relationships
+          // Rows should ONLY contain columns (created together, not dragged separately)
+          // Columns should contain content elements
+          // Root level should only have rows
+          
+          const validRelationships: Record<string, string[]> = {
+            'root': ['row', 'section'],           // Root level can only have rows/sections
+            'row': ['column'],                     // Rows can only have columns (but columns shouldn't be dragged alone)
+            'column': ['text', 'image', 'button', 'divider', 'spacer', 'heading'], // Columns can have content
+            'section': ['row'],                    // Sections can have rows
+          };
+          
+          const allowed = validRelationships[parentType]?.includes(childType) ?? false;
+          
+          // Additional restriction: Prevent dragging standalone columns into rows
+          // Columns should only be created as part of row structures
+          if (parentType === 'row' && childType === 'column') {
+            console.warn('Columns cannot be dragged independently. Use row structures instead.');
+            return false;
+          }
+          
+          return allowed;
+        };
+
         // Helper to find parent container and index
         const findParent = (items: EmailElement[], id: string): { parent: EmailElement[] | null, index: number } => {
           for (let i = 0; i < items.length; i++) {
@@ -465,6 +491,14 @@ export const useEditorStore = create<EditorStore>((set, get) => {
              };
              const containerElement = findElement(newElements, overId);
              if (containerElement && 'children' in containerElement) {
+                 // ✅ Validate before adding
+                 if (!canBeChild(movedElement.type, containerElement.type)) {
+                   console.warn(`Cannot add ${movedElement.type} inside ${containerElement.type}`);
+                   // Return moved element back to source
+                   source.parent.splice(source.index, 0, movedElement);
+                   return state as any; // Don't allow the move
+                 }
+                 
                  (containerElement as any).children.push(movedElement);
                  return {
                     currentTemplate: {
@@ -476,7 +510,8 @@ export const useEditorStore = create<EditorStore>((set, get) => {
                  } as any;
              }
              
-             // Fallback: don't move
+             // Fallback: don't move, return element to source
+             source.parent.splice(source.index, 0, movedElement);
              return state as any;
         }
 
