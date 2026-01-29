@@ -419,66 +419,47 @@ export const useEditorStore = create<EditorStore>((set, get) => {
 
         // Validation: Check if child type can be nested in parent type
         const canBeChild = (childType: string, parentType: string): boolean => {
-          // Define valid parent-child relationships
-          // Rows should ONLY contain columns (created together, not dragged separately)
-          // Columns should contain content elements
-          // Root level should only have rows
-          
           const validRelationships: Record<string, string[]> = {
-            'root': ['row', 'section'],           // Root level can only have rows/sections
-            'row': ['column'],                     // Rows can only have columns (but columns shouldn't be dragged alone)
-            'column': ['text', 'image', 'button', 'divider', 'spacer', 'heading'], // Columns can have content
-            'section': ['row'],                    // Sections can have rows
+            'root': ['row', 'section'],
+            'row': ['column'],
+            'column': ['text', 'image', 'button', 'divider', 'spacer', 'heading', 'video', 'html'],
+            'section': ['row'],
           };
           
           const allowed = validRelationships[parentType]?.includes(childType) ?? false;
           
-          // Additional restriction: Prevent dragging standalone columns into rows
-          // Columns should only be created as part of row structures
           if (parentType === 'row' && childType === 'column') {
-            console.warn('Columns cannot be dragged independently. Use row structures instead.');
-            return false;
+            return true;
           }
           
           return allowed;
         };
 
         // Helper to find parent container and index
-        const findParent = (items: EmailElement[], id: string): { parent: EmailElement[] | null, index: number } => {
+        const findParent = (items: EmailElement[], id: string, parentEl: EmailElement | null = null): { container: EmailElement[] | null, index: number, parentElement: EmailElement | null } => {
           for (let i = 0; i < items.length; i++) {
             if (items[i].id === id) {
-              return { parent: items, index: i };
+              return { container: items, index: i, parentElement: parentEl };
             }
             if ('children' in items[i] && (items[i] as any).children) {
-              const res = findParent((items[i] as any).children, id);
-              if (res.parent) return res;
+              const res = findParent((items[i] as any).children, id, items[i]);
+              if (res.container) return res;
             }
           }
-          return { parent: null, index: -1 };
+          return { container: null, index: -1, parentElement: null };
         };
 
         // Find active element (source)
         const source = findParent(newElements, activeId);
-        if (!source.parent) return state as any;
+        if (!source.container) return state as any;
 
         // Remove active element from source
-        const [movedElement] = source.parent.splice(source.index, 1);
+        const [movedElement] = source.container.splice(source.index, 1);
 
         // Find over element (target)
-        // Check if overId is a container itself (drop into empty container or at end)
-        // For simplicity in dnd-kit, usually overId is an item IN the container or the container itself.
-        // We need robust logic here.
-        // Assuming overId points to the item we are dropping OVER.
-        
         let target = findParent(newElements, overId);
         
-        // If we can't find 'overId', it might be a container ID.
-        // However, in our architecture, containers (Columns) are also Elements.
-        // So findParent would have found it if it was a child of root or another container.
-        // If overId IS the container ID, we should append to its children.
-        
-        if (!target.parent) {
-             // Maybe overId IS a container element?
+        if (!target.container) {
              const findElement = (items: EmailElement[], id: string): EmailElement | null => {
                 for (const item of items) {
                     if (item.id === id) return item;
@@ -491,38 +472,26 @@ export const useEditorStore = create<EditorStore>((set, get) => {
              };
              const containerElement = findElement(newElements, overId);
              if (containerElement && 'children' in containerElement) {
-                 // ✅ Validate before adding
                  if (!canBeChild(movedElement.type, containerElement.type)) {
                    console.warn(`Cannot add ${movedElement.type} inside ${containerElement.type}`);
-                   // Return moved element back to source
-                   source.parent.splice(source.index, 0, movedElement);
-                   return state as any; // Don't allow the move
+                   source.container.splice(source.index, 0, movedElement);
+                   return state as any;
                  }
-                 
                  (containerElement as any).children.push(movedElement);
-                 return {
-                    currentTemplate: {
-                        ...state.currentTemplate,
-                        elements: newElements,
-                        updatedAt: new Date().toISOString(),
-                    } as EmailTemplate,
-                    isDirty: true,
-                 } as any;
+             } else {
+                 source.container.splice(source.index, 0, movedElement);
+                 return state as any;
              }
-             
-             // Fallback: don't move, return element to source
-             source.parent.splice(source.index, 0, movedElement);
-             return state as any;
+        } else {
+            // Drop over existing item - validate container type
+            const parentType = target.parentElement ? target.parentElement.type : 'root';
+            if (!canBeChild(movedElement.type, parentType)) {
+              console.warn(`Cannot add ${movedElement.type} inside ${parentType}`);
+              source.container.splice(source.index, 0, movedElement);
+              return state as any;
+            }
+            target.container.splice(target.index, 0, movedElement);
         }
-
-        // Note: Logic for transferring between containers vs reordering in same container
-        // If target found, we insert relative to it.
-        // dnd-kit usually handles the "index" calculation in dragOver, but here we just do "insert after" or "insert before".
-        // Better: dnd-kit gives us the new state if we use arrayMove. 
-        // But since we have a tree, we need manual handling or flattened structure.
-        
-        // Simplified Logic: Insert movedElement at target index (replacing helps swap, splice inserts)
-        target.parent.splice(target.index, 0, movedElement);
 
         return {
           currentTemplate: {
@@ -533,8 +502,6 @@ export const useEditorStore = create<EditorStore>((set, get) => {
           isDirty: true,
         } as any;
       });
-      // Don't add to history on every drag frame, only drag end calls this? 
-      // ideally moveElement is called on dragEnd.
       addToHistory();
     },
 
