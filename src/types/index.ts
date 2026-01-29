@@ -50,6 +50,20 @@ export interface ImageElement extends BaseElementProps {
   title?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'scale-down';
   link?: string;
+  target?: '_blank' | '_self';
+  
+  // Width and alignment
+  autoWidth?: boolean;  // Auto width toggle (default: true)
+  align?: 'left' | 'center' | 'right' | 'justify';
+  
+  // Responsive visibility
+  hideOnDesktop?: boolean;
+  hideOnMobile?: boolean;
+  
+  // Border settings
+  borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: 'solid' | 'dashed' | 'dotted';
 }
 
 // Button Element
@@ -102,6 +116,7 @@ export interface ColumnElement extends BaseElementProps {
   type: 'column';
   children: EmailElement[];
   width: number | string; // percentage or pixel
+  horizontalAlign?: 'left' | 'center' | 'right';
 }
 
 // Row Element

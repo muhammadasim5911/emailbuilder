@@ -655,6 +655,241 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ element, onUpdate 
     );
   }
 
+  // --- Unified Layout for Image Elements ---
+  if (element.type === 'image') {
+    const imgEl = element as any;
+    const [isGranularPaddingImg, setIsGranularPaddingImg] = useState(false);
+    
+    const getPadding = (side: string) => {
+      if (typeof imgEl.padding === 'object' && imgEl.padding !== null) {
+        return (imgEl.padding as any)[side] || 0;
+      }
+      return imgEl.padding || 0;
+    };
+
+    return (
+      <div className="h-full flex flex-col bg-background border-l w-72 lg:w-80">
+        <PanelHeader />
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {/* Image Source Section */}
+          <CollapsibleSection title="Image" defaultOpen={true}>
+            <div className="grid gap-4">
+              <div className="grid gap-1.5">
+                <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Image URL</Label>
+                <div className="flex bg-muted rounded-md overflow-hidden h-9">
+                  <input
+                    className="flex-1 bg-transparent px-3 text-sm focus:outline-none"
+                    value={imgEl.src || ''}
+                    onChange={(e) => onUpdate({ src: e.target.value })}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid gap-1.5">
+                <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Alternate Text</Label>
+                <Input
+                  className="h-9"
+                  value={imgEl.alt || ''}
+                  onChange={(e) => onUpdate({ alt: e.target.value })}
+                  placeholder="Image description"
+                />
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          {/* Width & Alignment Section */}
+          <CollapsibleSection title="Width & Alignment" defaultOpen={true}>
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Auto Width</Label>
+                <button 
+                  onClick={() => onUpdate({ autoWidth: !(imgEl.autoWidth !== false) })}
+                  className={`w-10 h-5 rounded-full relative transition-colors ${imgEl.autoWidth !== false ? 'bg-blue-600' : 'bg-muted'}`}
+                >
+                  <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${imgEl.autoWidth !== false ? 'translate-x-5' : ''}`} />
+                </button>
+              </div>
+              
+              {imgEl.autoWidth === false && (
+                <div className="grid gap-1.5">
+                  <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Width</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={typeof imgEl.width === 'string' && imgEl.width.includes('%') ? parseInt(imgEl.width) : 100}
+                      onChange={(e) => onUpdate({ width: `${e.target.value}%` })}
+                      className="flex-1"
+                    />
+                    <span className="text-sm min-w-[45px]">{typeof imgEl.width === 'string' && imgEl.width.includes('%') ? parseInt(imgEl.width) : 100}%</span>
+                  </div>
+                </div>
+              )}
+              
+              <div className="grid gap-1.5">
+                <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Alignment</Label>
+                <div className="flex bg-muted p-1 rounded-md h-9 gap-1">
+                  {['left', 'center', 'right', 'justify'].map((align) => (
+                    <button
+                      key={align}
+                      onClick={() => onUpdate({ align: align as 'left' | 'center' | 'right' | 'justify' })}
+                      className={`flex-1 flex items-center justify-center rounded text-[10px] transition-all capitalize ${
+                        imgEl.align === align 
+                          ? 'bg-background shadow-sm text-foreground font-bold' 
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {align[0].toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          {/* Action/Link Section */}
+          <CollapsibleSection title="Action" defaultOpen={false}>
+            <div className="grid gap-4">
+              <div className="grid gap-1.5">
+                <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Link URL</Label>
+                <div className="flex bg-muted rounded-md overflow-hidden h-9">
+                  <div className="bg-muted-foreground/10 px-3 flex items-center text-[10px] font-bold border-r">URL</div>
+                  <input
+                    className="flex-1 bg-transparent px-3 text-sm focus:outline-none"
+                    value={imgEl.link || ''}
+                    onChange={(e) => onUpdate({ link: e.target.value })}
+                    placeholder="https://"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid gap-1.5">
+                <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Target</Label>
+                <Select
+                  value={imgEl.target || '_blank'}
+                  onValueChange={(value) => onUpdate({ target: value as any })}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_blank">New Tab</SelectItem>
+                    <SelectItem value="_self">Same Tab</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          {/* General Settings / Padding Section */}
+          <CollapsibleSection title="General" defaultOpen={true}>
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold uppercase text-[10px] tracking-wider">Padding</Label>
+                <button 
+                  className="text-[10px] text-blue-500 hover:underline"
+                  onClick={() => setIsGranularPaddingImg(!isGranularPaddingImg)}
+                >
+                  {isGranularPaddingImg ? 'Simple Options' : 'More Options'}
+                </button>
+              </div>
+              
+              {!isGranularPaddingImg ? (
+                <NumericCounter
+                  label="All Sides"
+                  value={getPadding('top')}
+                  onChange={(val) => onUpdate({ padding: { top: val, right: val, bottom: val, left: val } })}
+                />
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <NumericCounter label="Top" value={getPadding('top')} onChange={(val) => onUpdate({ padding: { ...(typeof imgEl.padding === 'object' && imgEl.padding !== null ? imgEl.padding : { top: 0, right: 0, bottom: 0, left: 0 }), top: val } })} />
+                  <NumericCounter label="Right" value={getPadding('right')} onChange={(val) => onUpdate({ padding: { ...(typeof imgEl.padding === 'object' && imgEl.padding !== null ? imgEl.padding : { top: 0, right: 0, bottom: 0, left: 0 }), right: val } })} />
+                  <NumericCounter label="Bottom" value={getPadding('bottom')} onChange={(val) => onUpdate({ padding: { ...(typeof imgEl.padding === 'object' && imgEl.padding !== null ? imgEl.padding : { top: 0, right: 0, bottom: 0, left: 0 }), bottom: val } })} />
+                  <NumericCounter label="Left" value={getPadding('left')} onChange={(val) => onUpdate({ padding: { ...(typeof imgEl.padding === 'object' && imgEl.padding !== null ? imgEl.padding : { top: 0, right: 0, bottom: 0, left: 0 }), left: val } })} />
+                </div>
+              )}
+            </div>
+          </CollapsibleSection>
+
+          {/* Border Section */}
+          <CollapsibleSection title="Border" defaultOpen={false}>
+            <div className="grid gap-4">
+              <NumericCounter
+                label="Width"
+                value={imgEl.borderWidth || 0}
+                onChange={(val) => onUpdate({ borderWidth: val })}
+              />
+              
+              <div className="grid gap-1.5">
+                <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Style</Label>
+                <Select
+                  value={imgEl.borderStyle || 'solid'}
+                  onValueChange={(value) => onUpdate({ borderStyle: value as any })}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="solid">Solid</SelectItem>
+                    <SelectItem value="dashed">Dashed</SelectItem>
+                    <SelectItem value="dotted">Dotted</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid gap-1.5">
+                <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Color</Label>
+                <div className="flex gap-2">
+                  <div className="w-9 h-9 rounded-md border overflow-hidden shrink-0 relative shadow-sm">
+                    <input
+                      type="color"
+                      value={imgEl.borderColor || '#000000'}
+                      onChange={(e) => onUpdate({ borderColor: e.target.value })}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="w-full h-full" style={{ backgroundColor: imgEl.borderColor || '#000000' }} />
+                  </div>
+                  <Input
+                    className="h-9"
+                    value={imgEl.borderColor || '#000000'}
+                    onChange={(e) => onUpdate({ borderColor: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          {/* Responsive Design Section */}
+          <CollapsibleSection title="Responsive Design" defaultOpen={false}>
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Hide on Desktop</Label>
+                <button 
+                  onClick={() => onUpdate({ hideOnDesktop: !imgEl.hideOnDesktop })}
+                  className={`w-10 h-5 rounded-full relative transition-colors ${imgEl.hideOnDesktop ? 'bg-blue-600' : 'bg-muted'}`}
+                >
+                  <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${imgEl.hideOnDesktop ? 'translate-x-5' : ''}`} />
+                </button>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground uppercase font-bold text-[10px] tracking-wider">Hide on Mobile</Label>
+                <button 
+                  onClick={() => onUpdate({ hideOnMobile: !imgEl.hideOnMobile })}
+                  className={`w-10 h-5 rounded-full relative transition-colors ${imgEl.hideOnMobile ? 'bg-blue-600' : 'bg-muted'}`}
+                >
+                  <div className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${imgEl.hideOnMobile ? 'translate-x-5' : ''}`} />
+                </button>
+              </div>
+            </div>
+          </CollapsibleSection>
+        </div>
+      </div>
+    );
+  }
+
   // Fallback for everything else
   return (
     <div className="h-full flex flex-col bg-background border-l">

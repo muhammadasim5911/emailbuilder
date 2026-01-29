@@ -458,10 +458,10 @@ export const createDefaultElement = (type: string): Partial<EmailElement> => {
       return {
         ...common,
         type: 'image',
-        src: 'https://via.placeholder.com/600x300',
+        src: 'https://cdn.tools.unlayer.com/image/placeholder.png',
         alt: 'Image',
-        width: 600,
-        height: 300,
+        width: '100%',
+        autoWidth: true, // Enable auto width by default for responsiveness
       };
 
     case 'button':

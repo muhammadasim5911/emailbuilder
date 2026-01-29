@@ -17,6 +17,21 @@ interface CanvasElementProps {
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+// Dedicated drag handle component for rows
+const DragHandle = ({ listeners, attributes }: { listeners?: any; attributes?: any }) => (
+  <div
+    {...listeners}
+    {...attributes}
+    className="absolute -right-8 top-1/2 -translate-y-1/2 w-6 h-6 bg-blue-500 rounded-full cursor-move flex items-center justify-center text-white shadow-lg hover:bg-blue-600 transition-colors z-30 opacity-0 group-hover:opacity-100"
+    title="Drag to reorder row"
+    onClick={(e) => e.stopPropagation()}
+  >
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 1L6 11M1 6L11 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  </div>
+);
+
 // Helper to render children
 const RenderChildren = ({ 
   elements, 
@@ -61,6 +76,18 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   onAddChild,
   selectedElementId,
 }) => {
+  // Only use sortable for rows and content elements (NOT columns)
+  const shouldBeSortable = element.type !== 'column';
+  
+  const sortableResult = useSortable({ 
+    id: element.id,
+    disabled: !shouldBeSortable,
+    data: {
+      type: element.type,
+      element: element,
+    }
+  });
+
   const {
     attributes,
     listeners,
@@ -68,13 +95,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
-    id: element.id,
-    data: {
-      type: element.type,
-      element: element,
-    }
-  });
+  } = sortableResult;
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -139,12 +160,16 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     selectedId: isSelected ? element.id : null,
   };
   
+  // For columns, don't apply drag listeners to the container - they're not draggable
+  const containerAttributes = element.type === 'column' ? {} : attributes;
+  const containerListeners = element.type === 'column' ? {} : (element.type === 'row' ? {} : listeners);
+  
   return (
     <div
       ref={setNodeRef}
       style={baseStyle}
-      {...attributes}
-      {...listeners}
+      {...containerAttributes}
+      {...containerListeners}
       onClick={handleClick}
       className={clsx(
         'relative transition-all cursor-pointer group',
@@ -181,19 +206,23 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         />
       )}
       {element.type === 'row' && (
-        <RowElementRenderer 
-            element={element as any}
-            renderChildren={(children) => (
-                <RenderChildren 
-                    elements={children} 
-                    onSelect={onSelect} 
-                    onUpdate={onUpdate} 
-                    onDelete={onDelete} 
-                    onAddChild={onAddChild}
-                    selectedElementId={selectedElementId || null} 
-                />
-            )}
-        />
+        <>
+          <RowElementRenderer 
+              element={element as any}
+              renderChildren={(children) => (
+                  <RenderChildren 
+                      elements={children} 
+                      onSelect={onSelect} 
+                      onUpdate={onUpdate} 
+                      onDelete={onDelete} 
+                      onAddChild={onAddChild}
+                      selectedElementId={selectedElementId || null} 
+                  />
+              )}
+          />
+          {/* Dedicated drag handle for rows */}
+          <DragHandle listeners={listeners} attributes={attributes} />
+        </>
       )}
         {element.type === 'section' && (
         <SectionElementRenderer 
@@ -392,19 +421,58 @@ const TextElementRenderer: React.FC<{ element: any, isSelected?: boolean, onUpda
   );
 };
 
-const ImageElementRenderer: React.FC<{ element: any }> = ({ element }) => (
-  <img
-    src={element.src}
-    alt={element.alt}
-    style={{
-      width: element.width || '100%', // Respect width if set, otherwise responsive
-      maxWidth: '100%', // Ensure images never overflow container
-      height: element.height || 'auto', // Respect height if set, otherwise auto
-      display: 'block',
-      objectFit: element.objectFit || 'cover',
-    }}
-  />
-);
+const ImageElementRenderer: React.FC<{ element: any }> = ({ element }) => {
+  // TODO: Implement actual device detection for responsive visibility
+  // For now, we'll just show the image (parent component should handle device mode)
+  const shouldHide = false; // Would be based on deviceMode prop and hideOnDesktop/hideOnMobile
+  
+  if (shouldHide) return null;
+  
+  // Determine width based on autoWidth setting
+  let imageWidth = '100%';
+  if (element.autoWidth !== false) {
+    // Auto width: image should not exceed container
+    imageWidth = '100%';
+  } else if (element.width) {
+    // Manual width: use the specified value
+    imageWidth = typeof element.width === 'string' ? element.width : `${element.width}px`;
+  }
+  
+  const imageElement = (
+    <img
+      src={element.src}
+      alt={element.alt}
+      title={element.title}
+      style={{
+        width: imageWidth,
+        maxWidth: '100%', // Always respect container bounds
+        height: element.height || 'auto',
+        display: 'block',
+        objectFit: element.objectFit || 'cover',
+      }}
+    />
+  );
+  
+  const content = element.link ? (
+    <a href={element.link} target={element.target || '_blank'} rel="noopener noreferrer" style={{ display: 'block' }}>
+      {imageElement}
+    </a>
+  ) : imageElement;
+  
+  return (
+    <div style={{ 
+      textAlign: element.align || 'left',
+      borderWidth: element.borderWidth ? `${element.borderWidth}px` : undefined,
+      borderStyle: element.borderStyle || (element.borderWidth ? 'solid' : undefined),
+      borderColor: element.borderColor,
+      width: '100%', // Wrapper takes full width of parent
+      display: 'block', // Block element for proper alignment
+      boxSizing: 'border-box',
+    }}>
+      {content}
+    </div>
+  );
+};
 
 const ButtonElementRenderer: React.FC<{ element: any }> = ({ element }) => {
   const btn = element as ButtonElement;
