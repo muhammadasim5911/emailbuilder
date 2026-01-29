@@ -1,54 +1,33 @@
-
 import React, { useState } from 'react';
-// import { createDefaultElement } from '../../utils';
-import type { EmailElement } from '../../types';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-// import { ScrollArea } from '../ui/scroll-area';
-// import { Separator } from '../ui/separator';
-import { cn } from '../../lib/utils';
-import { Type, Image, MousePointerClick, Minus, Square, LayoutGrid, ArrowDownToLine, Film } from 'lucide-react';
+import { Button } from '../../ui/button';
+import { Input } from '../../ui/input';
+import { cn } from '../../../lib/utils';
+import {
+  Type,
+  Image,
+  MousePointerClick,
+  Minus,
+  LayoutGrid,
+  ArrowDownToLine,
+  Heading,
+} from 'lucide-react';
 
 const ELEMENTS_GROUPS = [
   {
-    name: 'Content',
+    name: '',
     elements: [
-      { id: 'heading', label: 'Heading', icon: Type, isFree: true },
+      { id: 'row', label: 'Columns', icon: LayoutGrid, isFree: true },
+      { id: 'heading', label: 'Heading', icon: Heading, isFree: true },
       { id: 'text', label: 'Text', icon: Type, isFree: true },
       { id: 'image', label: 'Image', icon: Image, isFree: true },
       { id: 'button', label: 'Button', icon: MousePointerClick, isFree: true },
       { id: 'divider', label: 'Divider', icon: Minus, isFree: true },
-      { id: 'video', label: 'Video', icon: Film, isFree: true },
-    ],
-  },
-  {
-    name: 'Layout',
-    elements: [
-      { id: 'row', label: 'Columns', icon: LayoutGrid, isFree: true },
       { id: 'spacer', label: 'Spacer', icon: ArrowDownToLine, isFree: true },
-      { id: 'section', label: 'Section', icon: Square, isFree: true },
     ],
   },
-  /*
-  {
-    name: 'Advanced',
-    elements: [
-      { id: 'table', label: 'Table', icon: Table2, isFree: true },
-      { id: 'form', label: 'Form', icon: FormInput, isFree: true },
-      { id: 'countdown', label: 'Timer', icon: Timer, isFree: true },
-      { id: 'social', label: 'Social', icon: Share2, isFree: true },
-      { id: 'html', label: 'HTML', icon: Code2, isFree: true },
-      { id: 'menu', label: 'Menu', icon: MenuSquare, isFree: true },
-    ],
-  },
-  */
 ];
 
-interface ElementsPanelProps {
-  isPro: boolean;
-}
-
-export const ElementsPanel: React.FC<ElementsPanelProps> = ({ isPro }) => {
+export const ContentTab: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter elements based on search
@@ -96,7 +75,6 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ isPro }) => {
                       }}
                       className={cn(
                         "h-20 flex flex-col items-center justify-center gap-2 p-2 hover:border-primary hover:bg-primary/5 transition-all cursor-grab active:cursor-grabbing",
-                        !element.isFree && !isPro && "opacity-50"
                       )}
                     >
                       <element.icon className="w-6 h-6 text-foreground/80" />
@@ -112,6 +90,3 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ isPro }) => {
     </div>
   );
 };
-
-export default ElementsPanel;
-

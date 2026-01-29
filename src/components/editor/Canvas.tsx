@@ -130,7 +130,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       }}
     >
       {/* Canvas Controls Overlay */}
-      <div className="absolute top-4 right-4 z-10 flex gap-2">
+      {/* <div className="absolute top-4 right-4 z-10 flex gap-2">
         <div className="bg-background/80 backdrop-blur px-3 py-1.5 rounded-md shadow-sm border text-xs font-medium text-muted-foreground">
           {canvasWidth}px
         </div>
@@ -139,7 +139,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           {deviceMode === 'tablet' && 'Tablet'}
           {deviceMode === 'desktop' && 'Desktop'}
         </div>
-      </div>
+      </div> */}
 
       {/* Scrollable Container */}
       <div className="min-h-full p-8 flex justify-center perspective-1000">

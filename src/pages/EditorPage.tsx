@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useEditorStore, useUserStore, useTemplateLibraryStore } from '../store';
-import { Toolbar, Canvas, ElementsPanel, SettingsPanel, LayersPanel, TemplateLibraryModal } from '../components/editor';
+import { Toolbar, Canvas, RightSidebar, LayersPanel, TemplateLibraryModal } from '../components/editor';
 import { Button } from '../components/ui/button';
 import { Toast } from '../components/base';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
@@ -46,6 +46,7 @@ export const EditorPage: React.FC = () => {
     undo,
     redo,
     loadTemplate: loadEditorTemplate,
+    updateTemplate,
   } = useEditorStore();
 
   const { templates, addTemplate } = useTemplateLibraryStore();
@@ -259,7 +260,7 @@ export const EditorPage: React.FC = () => {
   };
 
   const selectedElement = selectedElementId
-    ? findElementDeep(currentTemplate?.elements || [], selectedElementId)
+    ? findElementDeep(currentTemplate?.elements || [], selectedElementId) || null
     : null;
 
   // Smart selection: when clicking a column, select its parent row instead
@@ -394,11 +395,7 @@ export const EditorPage: React.FC = () => {
       {/* Main Editor Layout */}
       <div className="flex flex-1 overflow-hidden gap-4 p-4 bg-muted/20">
         {/* Left Sidebar - Elements */}
-        <div className="w-64 bg-background rounded-lg shadow-sm border border-border overflow-hidden flex flex-col">
-          <ElementsPanel
-            isPro={features.advancedElements}
-          />
-        </div>
+
 
         {/* Center - Canvas */}
         <Canvas
@@ -420,9 +417,45 @@ export const EditorPage: React.FC = () => {
             // Optional: showToast('Element moved', 'success');
           }}
           onAddElementAtIndex={(elementType, index) => {
-            const elementData = createDefaultElement(elementType);
-            addElementAtIndex(elementData as any, index);
-            showToast(`${elementType} added`, 'success');
+            // Handle Layout Blocks
+            if (elementType.startsWith('layout-')) {
+                let columns: any[] = [];
+                if (elementType === 'layout-1') columns = [{ width: '100%' }];
+                if (elementType === 'layout-2') columns = [{ width: '50%' }, { width: '50%' }];
+                if (elementType === 'layout-3') columns = [{ width: '33.33%' }, { width: '33.33%' }, { width: '33.33%' }];
+                if (elementType === 'layout-4') columns = [{ width: '25%' }, { width: '25%' }, { width: '25%' }, { width: '25%' }];
+                if (elementType === 'layout-1-2') columns = [{ width: '33.33%' }, { width: '66.66%' }];
+                if (elementType === 'layout-2-1') columns = [{ width: '66.66%' }, { width: '33.33%' }];
+
+                const rowElement = createDefaultElement('row') as any;
+                rowElement.children = columns.map(col => ({
+                    ...createDefaultElement('column'),
+                    id: uuidv4(),
+                    width: col.width,
+                    visible: true,
+                    locked: false,
+                }));
+                
+                addElementAtIndex(rowElement, index);
+                showToast(`Row with ${columns.length} columns added`, 'success');
+                return;
+            }
+
+            // Normal Elements
+            if (elementType === 'row') {
+               const elementData = createDefaultElement(elementType);
+               addElementAtIndex(elementData as any, index);
+               showToast(`${elementType} added`, 'success');
+            } else {
+               const elementData = createDefaultElement(elementType);
+               // Auto-wrap non-row elements
+               const rowElement = createDefaultElement('row') as any;
+               if (rowElement.children && rowElement.children.length > 0) {
+                 rowElement.children[0].children.push(elementData);
+               }
+               addElementAtIndex(rowElement, index);
+               showToast(`${elementType} added in new row`, 'success');
+            }
           }}
           onAddChild={(parentId, elementType) => {
             const elementData = createDefaultElement(elementType);
@@ -431,32 +464,15 @@ export const EditorPage: React.FC = () => {
           }}
         />
 
-        {/* Right Sidebar - Split: Layers + Settings */}
-        <div className="w-80 flex flex-col gap-4">
-          {/* Layers Panel (Disabled for now) */}
-          {/* 
-          <div className="h-64 bg-background rounded-lg shadow-sm border border-border overflow-hidden flex flex-col">
-            <LayersPanel
-              elements={currentTemplate?.elements || []}
-              selectedElementId={selectedElementId}
-              onSelectElement={selectElement}
-              onDeleteElement={deleteElement}
-              onDuplicateElement={duplicateElement}
+        {/* Right Sidebar - Combined Properties + Tabs */}
+        <div className="w-80 border-l bg-background flex flex-col z-10 shadow-lg">
+            <RightSidebar 
+                selectedElement={selectedElement}
+                onUpdateElement={(updates) => selectedElementId && updateElement(selectedElementId, updates)}
+                onDeselectElement={() => selectElement(null)}
+                template={currentTemplate}
+                onUpdateTemplate={updateTemplate}
             />
-          </div>
-          */}
-
-          {/* Settings Panel */}
-          <div className="flex-1 bg-background rounded-lg shadow-sm border border-border overflow-hidden flex flex-col">
-            <SettingsPanel
-              element={selectedElement || null}
-              onUpdate={(updates: any) => {
-                if (selectedElementId) {
-                  updateElement(selectedElementId, updates);
-                }
-              }}
-            />
-          </div>
         </div>
       </div>
 
