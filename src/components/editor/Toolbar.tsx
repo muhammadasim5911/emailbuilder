@@ -51,18 +51,24 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           size="sm"
           onClick={onUndo}
           title="Undo"
-          className="w-9 h-9 p-0"
+          className="w-10 h-10 p-2 flex items-center justify-center text-gray-700"
         >
-          ↶
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 7v6h6"/>
+            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+          </svg>
         </Button>
         <Button
           variant="ghost"
           size="sm"
           onClick={onRedo}
           title="Redo"
-          className="w-9 h-9 p-0"
+          className="w-10 h-10 p-2 flex items-center justify-center text-gray-400"
         >
-          ↷
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 7v6h-6"/>
+            <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/>
+          </svg>
         </Button>
         <div className="h-6 w-px bg-gray-200" />
         {/* {!hideSaveButton && (

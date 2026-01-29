@@ -476,7 +476,7 @@ export const createDefaultElement = (type: string): Partial<EmailElement> => {
         fontWeight: 'normal',
         color: '#ffffff',
         backgroundColor: '#0ea5e9',
-        padding: { top: 14, right: 28, bottom: 14, left: 28 },
+        padding: { top: 5, right: 10, bottom: 5, left: 10 },
         borderRadius: 6,
         fullWidth: false,
         width: 'auto',

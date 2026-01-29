@@ -449,16 +449,14 @@ export const useEditorStore = create<EditorStore>((set, get) => {
           return { container: null, index: -1, parentElement: null };
         };
 
-        // Find active element (source)
+        // Find active element (source) and target element BEFORE removal to preserve indices
         const source = findParent(newElements, activeId);
+        const target = findParent(newElements, overId);
+
         if (!source.container) return state as any;
 
-        // Remove active element from source
         const [movedElement] = source.container.splice(source.index, 1);
 
-        // Find over element (target)
-        let target = findParent(newElements, overId);
-        
         if (!target.container) {
              const findElement = (items: EmailElement[], id: string): EmailElement | null => {
                 for (const item of items) {
@@ -483,14 +481,36 @@ export const useEditorStore = create<EditorStore>((set, get) => {
                  return state as any;
              }
         } else {
-            // Drop over existing item - validate container type
+            // Re-find target index in case it was in the same container and shifted
+            // Actually, we can just use the target we found earlier if we handle the shift
+            let targetIndex = target.index;
+            
+            // If dragging within the same container and moving downwards, 
+            // the target index shifts by -1 after removal of source
+            if (source.container === target.container && source.index < target.index) {
+                // No, wait. If we move from 0 to 1 in [A, B, C]. 
+                // Remove A: [B, C]. We want A to be AFTER B. B is now at index 0. 
+                // So we should insert at index 1.
+                // target.index was 1. So targetIndex stays 1.
+                // Wait, if we want A to be AT the position of B, we insert at 1. Correct.
+            }
+
             const parentType = target.parentElement ? target.parentElement.type : 'root';
             if (!canBeChild(movedElement.type, parentType)) {
               console.warn(`Cannot add ${movedElement.type} inside ${parentType}`);
               source.container.splice(source.index, 0, movedElement);
               return state as any;
             }
-            target.container.splice(target.index, 0, movedElement);
+            
+            // Refind target container and index because they might have been part of the movedElement tree 
+            // (though dnd-kit usually prevents dragging into own child)
+            const finalTarget = findParent(newElements, overId);
+            if (finalTarget.container) {
+                finalTarget.container.splice(finalTarget.index, 0, movedElement);
+            } else {
+                // Fallback
+                source.container.splice(source.index, 0, movedElement);
+            }
         }
 
         return {
