@@ -52,14 +52,7 @@ function ExampleApp() {
       trigger: '#',
       description: 'Link to unsubscribe from emails',
     },
-    {
-      id: '6',
-      label: 'Current Year',
-      value: '{{currentYear}}',
-      category: 'system',
-      trigger: '#',
-      description: 'Current year (e.g., 2024)',
-    },
+   
   ];
 
   // Handle template changes (auto-save to localStorage)

@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import type { EmailElement, ButtonElement, MergeTag } from '../../types';
 import clsx from 'clsx';
 
@@ -597,14 +598,15 @@ const TextElementRenderer: React.FC<{
             }
         }}
       />
-      {mergeTagConfig?.show && (
+      {mergeTagConfig?.show && createPortal(
         <MergeTagDropdown
           position={mergeTagConfig.position}
           searchQuery={mergeTagConfig.query}
           onSelect={handleSelectTag}
           onClose={() => setMergeTagConfig(null)}
           tags={mergeTags}
-        />
+        />,
+        document.body
       )}
     </>
   );
