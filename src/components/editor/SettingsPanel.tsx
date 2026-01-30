@@ -169,6 +169,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ element, onUpdate 
   const [isGranularPaddingBtn, setIsGranularPaddingBtn] = useState(false);
   const [isGranularBorder, setIsGranularBorder] = useState(false);
   const [isGranularRadius, setIsGranularRadius] = useState(false);
+  const [isGranularPaddingImg, setIsGranularPaddingImg] = useState(false);
 
   if (!element) {
     return (
@@ -698,7 +699,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ element, onUpdate 
   // --- Unified Layout for Image Elements ---
   if (element.type === 'image') {
     const imgEl = element as any;
-    const [isGranularPaddingImg, setIsGranularPaddingImg] = useState(false);
     
     const getPadding = (side: string) => {
       if (typeof imgEl.padding === 'object' && imgEl.padding !== null) {

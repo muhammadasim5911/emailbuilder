@@ -37,7 +37,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 <span className="text-sm font-semibold">Back to Content</span>
             </div>
             <div className="flex-1 overflow-hidden">
-                <SettingsPanel element={selectedElement} onUpdate={onUpdateElement} />
+                <SettingsPanel key={selectedElement.id} element={selectedElement} onUpdate={onUpdateElement} />
             </div>
         </div>
     );
