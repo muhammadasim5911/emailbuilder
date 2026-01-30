@@ -65,7 +65,6 @@ export const EmailTemplateBuilder: React.FC<EmailTemplateBuilderProps> = ({
   };
 
   // Pass props to EditorPage
-  // @ts-ignore - EditorPage props interface needs to be updated
   return (
     <EditorPage
       readOnly={readOnly}

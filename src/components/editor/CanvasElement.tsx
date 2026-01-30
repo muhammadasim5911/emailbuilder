@@ -1,5 +1,5 @@
 import React from 'react';
-import type { EmailElement, ButtonElement } from '../../types';
+import type { EmailElement, ButtonElement, MergeTag } from '../../types';
 import clsx from 'clsx';
 
 interface CanvasElementProps {
@@ -12,6 +12,7 @@ interface CanvasElementProps {
   onDelete: (id: string) => void;
   onAddChild?: (parentId: string, elementType: string) => void;
   selectedElementId?: string | null;
+  mergeTags?: MergeTag[];
 }
 
 import { useSortable } from '@dnd-kit/sortable';
@@ -40,14 +41,16 @@ const RenderChildren = ({
   onUpdate, 
   onDelete, 
   onAddChild,
-  selectedElementId 
+  selectedElementId,
+  mergeTags
 }: { 
   elements: EmailElement[], 
   onSelect: (id: string | null) => void, 
   onUpdate: (id: string, updates: Partial<EmailElement>) => void, 
   onDelete: (id: string) => void,
   onAddChild?: (parentId: string, elementType: string) => void,
-  selectedElementId: string | null
+  selectedElementId: string | null,
+  mergeTags?: MergeTag[]
 }) => {
   return (
     <>
@@ -61,6 +64,7 @@ const RenderChildren = ({
           onDelete={onDelete}
           onAddChild={onAddChild}
           selectedElementId={selectedElementId}
+          mergeTags={mergeTags}
         />
       ))}
     </>
@@ -76,6 +80,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   onDelete,
   onAddChild,
   selectedElementId,
+  mergeTags,
 }) => {
   // Only use sortable for rows and content elements (NOT columns)
   const shouldBeSortable = element.type !== 'column';
@@ -181,7 +186,14 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       data-element-id={element.id}
     >
       {/* Content Renderers */}
-      {element.type === 'text' && <TextElementRenderer element={element as any} isSelected={isSelected} onUpdate={onUpdate} />}
+      {element.type === 'text' && (
+        <TextElementRenderer 
+          element={element as any} 
+          isSelected={isSelected} 
+          onUpdate={onUpdate} 
+          mergeTags={mergeTags}
+        />
+      )}
       {element.type === 'image' && <ImageElementRenderer element={element as any} />}
       {element.type === 'button' && <ButtonElementRenderer element={element as any} />}
       {element.type === 'divider' && <DividerElementRenderer element={element as any} />}
@@ -194,6 +206,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         <ColumnElementRenderer 
             element={element as any} 
             onAddChild={onAddChild}
+            mergeTags={mergeTags}
             renderChildren={(children) => (
                 <RenderChildren 
                     elements={children} 
@@ -202,6 +215,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     onDelete={onDelete} 
                     onAddChild={onAddChild}
                     selectedElementId={selectedElementId || null} 
+                    mergeTags={mergeTags}
                 />
             )}
         />
@@ -218,6 +232,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                       onDelete={onDelete} 
                       onAddChild={onAddChild}
                       selectedElementId={selectedElementId || null} 
+                      mergeTags={mergeTags}
                   />
               )}
           />
@@ -236,6 +251,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     onDelete={onDelete} 
                     onAddChild={onAddChild}
                     selectedElementId={selectedElementId || null} 
+                    mergeTags={mergeTags}
                 />
             )}
         />
@@ -271,8 +287,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 const ColumnElementRenderer: React.FC<{ 
     element: any, 
     onAddChild?: (parentId: string, elementType: string) => void,
-    renderChildren: (children: any[]) => React.ReactNode 
-}> = ({ element, onAddChild, renderChildren }) => {
+    renderChildren: (children: any[]) => React.ReactNode,
+    mergeTags?: MergeTag[]
+}> = ({ element, onAddChild, renderChildren, mergeTags }) => {
   const [isNativeOver, setIsNativeOver] = React.useState(false);
   
   // Use dnd-kit's drop indicator
@@ -396,54 +413,200 @@ const SectionElementRenderer: React.FC<{ element: any, renderChildren: (children
   </div>
 );
 
-// ... Simple Renderers (Text, Image, etc - kept same but cleaner) ...
-const TextElementRenderer: React.FC<{ element: any, isSelected?: boolean, onUpdate?: (id: string, updates: any) => void }> = ({ element, isSelected, onUpdate }) => {
-  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    if (onUpdate) {
-      onUpdate(element.id, { content: e.currentTarget.innerHTML });
+import { MergeTagDropdown } from './MergeTagDropdown';
+
+const TextElementRenderer: React.FC<{ 
+  element: any, 
+  isSelected?: boolean, 
+  onUpdate?: (id: string, updates: any) => void,
+  mergeTags?: MergeTag[]
+}> = ({ element, isSelected, onUpdate, mergeTags }) => {
+  const [mergeTagConfig, setMergeTagConfig] = React.useState<{
+    show: boolean;
+    position: { top: number; left: number };
+    query: string;
+  } | null>(null);
+  const editorRef = React.useRef<HTMLDivElement>(null);
+  const lastRangeRef = React.useRef<Range | null>(null);
+  
+  // Update local DOM only when prop content changes and we're not editing
+  React.useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== element.content) {
+      if (document.activeElement !== editorRef.current) {
+        editorRef.current.innerHTML = element.content;
+      }
     }
+  }, [element.content]);
+
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    // Small delay to allow dropdown clicks if any
+    setTimeout(() => {
+      if (onUpdate && editorRef.current) {
+        onUpdate(element.id, { content: editorRef.current.innerHTML });
+      }
+    }, 200);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (isSelected) {
       e.stopPropagation();
+      
+      if (mergeTagConfig?.show) {
+          // If dropdown is open, don't let editor handle navigation keys
+          if (['ArrowUp', 'ArrowDown', 'Enter', 'Escape'].includes(e.key)) {
+              // Handled by dropdown (via global listener)
+              return;
+          }
+      }
     }
   };
 
-  // Only use dangerouslySetInnerHTML when NOT selected (or initially)
-  // If we are selected (editing), we want the DOM to be uncontrolled to let user type
-  // However, React needs initial content.
-  // We can use a ref to track if we are already editing to avoid re-setting HTML
-  // But simpler: just suppress updates while selected? No, that prevents other updates.
-  // Standard React contentEditable fix: only update if data changed significantly or not focused.
-  // But for now, let's just stop propagation of Space.
+  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    if (!isSelected) return;
+    
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    
+    const range = selection.getRangeAt(0);
+    const container = range.startContainer;
+    
+    if (container.nodeType === Node.TEXT_NODE) {
+      const text = container.textContent || '';
+      const offset = range.startOffset;
+      const lastChar = text[offset - 1];
+      
+      if (lastChar === '@') {
+        const rect = range.getBoundingClientRect();
+        lastRangeRef.current = range.cloneRange();
+        setMergeTagConfig({
+          show: true,
+          position: { top: rect.bottom, left: rect.left },
+          query: ''
+        });
+      } else if (mergeTagConfig?.show) {
+        lastRangeRef.current = range.cloneRange();
+        // Find text after @
+        const textBeforeCursor = text.substring(0, offset);
+        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+        if (lastAtIndex !== -1) {
+          const query = textBeforeCursor.substring(lastAtIndex + 1);
+          setMergeTagConfig(prev => prev ? { ...prev, query } : null);
+        } else {
+          setMergeTagConfig(null);
+        }
+      }
+    }
+  };
+
+  const handleSelectTag = (tag: MergeTag) => {
+    const selection = window.getSelection();
+    if (!selection) return;
+    
+    let range: Range | null = null;
+    if (selection.rangeCount > 0) {
+        range = selection.getRangeAt(0);
+    }
+    
+    // If current selection is not valid or not in editor, try saved range
+    if ((!range || !editorRef.current?.contains(range.startContainer)) && lastRangeRef.current) {
+        range = lastRangeRef.current;
+    }
+
+    if (range && editorRef.current?.contains(range.startContainer)) {
+      const container = range.startContainer;
+      
+      if (container.nodeType === Node.TEXT_NODE) {
+        const text = container.textContent || '';
+        const offset = range.startOffset;
+        const textBefore = text.substring(0, offset);
+        const lastAtIndex = textBefore.lastIndexOf('@');
+        
+        if (lastAtIndex !== -1) {
+          // Delete the @ and the following query text
+          range.setStart(container, lastAtIndex);
+          range.setEnd(container, offset);
+          range.deleteContents();
+          
+          // Create the merge tag span
+          const span = document.createElement('span');
+          span.className = 'merge-tag';
+          span.dataset.tag = tag.id;
+          span.contentEditable = 'false';
+          span.setAttribute('data-label', tag.label);
+          span.innerHTML = tag.value;
+          
+          range.insertNode(span);
+          
+          // Add a space after the span
+          const space = document.createTextNode('\u00A0');
+          range.setStartAfter(span);
+          range.collapse(true);
+          range.insertNode(space);
+          
+          // Move cursor after the space
+          range.setStartAfter(space);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      }
+    } else if (editorRef.current) {
+        // Fallback: Append to end if no selection found
+        const span = document.createElement('span');
+        span.className = 'merge-tag';
+        span.dataset.tag = tag.id;
+        span.contentEditable = 'false';
+        span.innerHTML = tag.value;
+        editorRef.current.appendChild(span);
+        editorRef.current.appendChild(document.createTextNode('\u00A0'));
+    }
+    
+    setMergeTagConfig(null);
+    lastRangeRef.current = null;
+    
+    if (onUpdate && editorRef.current) {
+        onUpdate(element.id, { content: editorRef.current.innerHTML });
+    }
+  };
   
   return (
-    <div
-      contentEditable={isSelected}
-      suppressContentEditableWarning={true}
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-      style={{
-        fontSize: `${element.fontSize}px`,
-        fontFamily: element.fontFamily,
-        color: element.color,
-        textAlign: element.textAlign || 'left',
-        fontWeight: element.fontWeight,
-        lineHeight: element.lineHeight,
-        fontStyle: element.fontStyle,
-        wordBreak: 'break-word',
-        outline: 'none', // Remove default focus outline
-        cursor: isSelected ? 'text' : 'default',
-        minHeight: '1em', // Ensure it's clickable even if empty
-      }}
-      dangerouslySetInnerHTML={{ __html: element.content }}
-      onClick={(e) => {
-          if (isSelected) {
-              e.stopPropagation(); // Allow text selection/editing without triggering parent select
-          }
-      }}
-    />
+    <>
+      <div
+        ref={editorRef}
+        contentEditable={isSelected}
+        suppressContentEditableWarning={true}
+        onBlur={handleBlur}
+        onInput={handleInput}
+        onKeyDown={handleKeyDown}
+        style={{
+          fontSize: `${element.fontSize}px`,
+          fontFamily: element.fontFamily,
+          color: element.color,
+          textAlign: element.textAlign || 'left',
+          fontWeight: element.fontWeight,
+          lineHeight: element.lineHeight,
+          fontStyle: element.fontStyle,
+          wordBreak: 'break-word',
+          outline: 'none',
+          cursor: isSelected ? 'text' : 'default',
+          minHeight: '1em',
+        }}
+        onClick={(e) => {
+            if (isSelected) {
+                e.stopPropagation();
+            }
+        }}
+      />
+      {mergeTagConfig?.show && (
+        <MergeTagDropdown
+          position={mergeTagConfig.position}
+          searchQuery={mergeTagConfig.query}
+          onSelect={handleSelectTag}
+          onClose={() => setMergeTagConfig(null)}
+          tags={mergeTags}
+        />
+      )}
+    </>
   );
 };
 

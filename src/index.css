@@ -128,3 +128,15 @@ body,
   animation: slideUp 0.3s ease-out;
 }
 
+.merge-tag {
+  border: 1px dotted #3b82f6;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  padding: 0px 4px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: default;
+  display: inline-block;
+  user-select: none;
+  margin: 0 1px;
+}

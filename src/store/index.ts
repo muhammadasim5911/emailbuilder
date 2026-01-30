@@ -776,7 +776,16 @@ interface MergeTagStore {
 }
 
 export const useMergeTagStore = create<MergeTagStore>((set, get) => ({
-  mergeTags: [],
+  mergeTags: [
+    { id: '1', label: 'First Name', value: '{{firstname}}', category: 'user', trigger: '@' },
+    { id: '2', label: 'Last Name', value: '{{lastname}}', category: 'user', trigger: '@' },
+    { id: '3', label: 'Full Name', value: '{{fullname}}', category: 'user', trigger: '@' },
+    { id: '4', label: 'Email Address', value: '{{email}}', category: 'user', trigger: '@' },
+    { id: '5', label: 'Company Name', value: '{{companyname}}', category: 'custom', trigger: '@' },
+    { id: '6', label: 'Current Date', value: '{{date}}', category: 'system', trigger: '@' },
+    { id: '7', label: 'Unsubscribe Link', value: '{{unsubscribe_url}}', category: 'system', trigger: '@' },
+    { id: '8', label: 'Test Tag', value: '{{test_tag}}', category: 'custom', trigger: '@' },
+  ],
   mergeTagTriggers: ['@', '#'], // Default triggers
 
   setMergeTags: (tags: MergeTag[]) => {

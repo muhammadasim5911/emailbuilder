@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useEditorStore, useUserStore, useTemplateLibraryStore } from '../store';
+import { useEditorStore, useUserStore, useTemplateLibraryStore, useMergeTagStore } from '../store';
 import { Toolbar, Canvas, RightSidebar, LayersPanel, TemplateLibraryModal } from '../components/editor';
 import { Button } from '../components/ui/button';
 import { Toast } from '../components/base';
@@ -9,7 +9,23 @@ import { exportTemplate, createDefaultElement, findElementDeep, findParentElemen
 import type { ExportOptions } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
-export const EditorPage: React.FC = () => {
+interface EditorPageProps {
+  readOnly?: boolean;
+  hideToolbar?: boolean;
+  hideElementsPanel?: boolean;
+  hideSettingsPanel?: boolean;
+  hideSaveButton?: boolean;
+  onSave?: () => void;
+}
+
+export const EditorPage: React.FC<EditorPageProps> = ({
+  readOnly,
+  hideToolbar,
+  hideElementsPanel,
+  hideSettingsPanel,
+  hideSaveButton,
+  onSave,
+}) => {
   const [showPreview, setShowPreview] = useState(false);
   const [exportFormat, setExportFormat] = useState<'html' | 'json' | 'mjml' | 'amp'>('html');
   const [showExportModal, setShowExportModal] = useState(false);
@@ -50,6 +66,7 @@ export const EditorPage: React.FC = () => {
   } = useEditorStore();
 
   const { templates, addTemplate } = useTemplateLibraryStore();
+  const { mergeTags } = useMergeTagStore();
 
   // Initialize sample templates
   useEffect(() => {
@@ -462,6 +479,7 @@ export const EditorPage: React.FC = () => {
             addChildElement(parentId, elementData as any);
             showToast(`${elementType} added to column`, 'success');
           }}
+          mergeTags={mergeTags}
         />
 
         {/* Right Sidebar - Combined Properties + Tabs */}
