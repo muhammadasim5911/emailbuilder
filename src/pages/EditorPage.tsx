@@ -479,7 +479,6 @@ export const EditorPage: React.FC<EditorPageProps> = ({
             addChildElement(parentId, elementData as any);
             showToast(`${elementType} added to column`, 'success');
           }}
-          mergeTags={mergeTags}
         />
 
         {/* Right Sidebar - Combined Properties + Tabs */}

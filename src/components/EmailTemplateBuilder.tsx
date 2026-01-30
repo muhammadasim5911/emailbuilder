@@ -25,16 +25,11 @@ export const EmailTemplateBuilder: React.FC<EmailTemplateBuilderProps> = ({
 }) => {
   const { currentTemplate, loadTemplate } = useEditorStore();
   const { setMergeTags, setMergeTagTriggers } = useMergeTagStore();
-  const initializedRef = useRef(false);
-
-  // Initialize merge tags and triggers only once
+  // Sync merge tags and triggers from props to store
   useEffect(() => {
-    if (!initializedRef.current) {
-      setMergeTags(mergeTags);
-      setMergeTagTriggers(mergeTagTriggers);
-      initializedRef.current = true;
-    }
-  }, []); // Empty deps - only run once
+    setMergeTags(mergeTags);
+    setMergeTagTriggers(mergeTagTriggers);
+  }, [mergeTags, mergeTagTriggers, setMergeTags, setMergeTagTriggers]);
 
   // Load initial template
   useEffect(() => {

@@ -34,7 +34,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 <Button variant="ghost" size="sm" onClick={onDeselectElement} className="h-8 w-8 p-0">
                     <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="text-sm font-semibold">Back to Elements</span>
+                <span className="text-sm font-semibold">Back to Content</span>
             </div>
             <div className="flex-1 overflow-hidden">
                 <SettingsPanel element={selectedElement} onUpdate={onUpdateElement} />

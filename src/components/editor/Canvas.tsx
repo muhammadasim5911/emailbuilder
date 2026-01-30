@@ -36,7 +36,6 @@ interface CanvasProps {
   onMoveElement?: (activeId: string, overId: string) => void;
   onAddElementAtIndex?: (elementType: string, index: number) => void;
   onAddChild?: (parentId: string, elementType: string) => void;
-  mergeTags?: MergeTag[];
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
@@ -53,7 +52,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   onMoveElement,
   onAddElementAtIndex,
   onAddChild,
-  mergeTags,
 }) => {
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -214,7 +212,6 @@ export const Canvas: React.FC<CanvasProps> = ({
                       onDelete={onElementDelete}
                       onAddChild={onAddChild}
                       selectedElementId={selectedElementId}
-                      mergeTags={mergeTags}
                     />
                   ))}
                 </SortableContext>
@@ -229,7 +226,6 @@ export const Canvas: React.FC<CanvasProps> = ({
                               onSelect={() => {}}
                               onUpdate={() => {}}
                               onDelete={() => {}}
-                              mergeTags={mergeTags}
                            />
                          </div>
                       ) : null}

@@ -13,7 +13,6 @@ interface CanvasElementProps {
   onDelete: (id: string) => void;
   onAddChild?: (parentId: string, elementType: string) => void;
   selectedElementId?: string | null;
-  mergeTags?: MergeTag[];
 }
 
 import { useSortable } from '@dnd-kit/sortable';
@@ -42,16 +41,14 @@ const RenderChildren = ({
   onUpdate, 
   onDelete, 
   onAddChild,
-  selectedElementId,
-  mergeTags
+  selectedElementId
 }: { 
   elements: EmailElement[], 
   onSelect: (id: string | null) => void, 
   onUpdate: (id: string, updates: Partial<EmailElement>) => void, 
   onDelete: (id: string) => void,
   onAddChild?: (parentId: string, elementType: string) => void,
-  selectedElementId: string | null,
-  mergeTags?: MergeTag[]
+  selectedElementId: string | null
 }) => {
   return (
     <>
@@ -65,7 +62,6 @@ const RenderChildren = ({
           onDelete={onDelete}
           onAddChild={onAddChild}
           selectedElementId={selectedElementId}
-          mergeTags={mergeTags}
         />
       ))}
     </>
@@ -81,7 +77,6 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   onDelete,
   onAddChild,
   selectedElementId,
-  mergeTags,
 }) => {
   // Only use sortable for rows and content elements (NOT columns)
   const shouldBeSortable = element.type !== 'column';
@@ -192,7 +187,6 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
           element={element as any} 
           isSelected={isSelected} 
           onUpdate={onUpdate} 
-          mergeTags={mergeTags}
         />
       )}
       {element.type === 'image' && <ImageElementRenderer element={element as any} />}
@@ -207,7 +201,6 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         <ColumnElementRenderer 
             element={element as any} 
             onAddChild={onAddChild}
-            mergeTags={mergeTags}
             renderChildren={(children) => (
                 <RenderChildren 
                     elements={children} 
@@ -216,7 +209,6 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     onDelete={onDelete} 
                     onAddChild={onAddChild}
                     selectedElementId={selectedElementId || null} 
-                    mergeTags={mergeTags}
                 />
             )}
         />
@@ -233,7 +225,6 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                       onDelete={onDelete} 
                       onAddChild={onAddChild}
                       selectedElementId={selectedElementId || null} 
-                      mergeTags={mergeTags}
                   />
               )}
           />
@@ -252,7 +243,6 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     onDelete={onDelete} 
                     onAddChild={onAddChild}
                     selectedElementId={selectedElementId || null} 
-                    mergeTags={mergeTags}
                 />
             )}
         />
@@ -288,9 +278,8 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 const ColumnElementRenderer: React.FC<{ 
     element: any, 
     onAddChild?: (parentId: string, elementType: string) => void,
-    renderChildren: (children: any[]) => React.ReactNode,
-    mergeTags?: MergeTag[]
-}> = ({ element, onAddChild, renderChildren, mergeTags }) => {
+    renderChildren: (children: any[]) => React.ReactNode
+}> = ({ element, onAddChild, renderChildren }) => {
   const [isNativeOver, setIsNativeOver] = React.useState(false);
   
   // Use dnd-kit's drop indicator
@@ -415,13 +404,13 @@ const SectionElementRenderer: React.FC<{ element: any, renderChildren: (children
 );
 
 import { MergeTagDropdown } from './MergeTagDropdown';
+import { useMergeTagStore } from '../../store';
 
 const TextElementRenderer: React.FC<{ 
   element: any, 
   isSelected?: boolean, 
-  onUpdate?: (id: string, updates: any) => void,
-  mergeTags?: MergeTag[]
-}> = ({ element, isSelected, onUpdate, mergeTags }) => {
+  onUpdate?: (id: string, updates: any) => void
+}> = ({ element, isSelected, onUpdate }) => {
   const [mergeTagConfig, setMergeTagConfig] = React.useState<{
     show: boolean;
     position: { top: number; left: number };
@@ -429,6 +418,9 @@ const TextElementRenderer: React.FC<{
   } | null>(null);
   const editorRef = React.useRef<HTMLDivElement>(null);
   const lastRangeRef = React.useRef<Range | null>(null);
+  
+  const { mergeTagTriggers, mergeTags: storeTags, getMergeTagsByTrigger } = useMergeTagStore();
+  const availableTags = storeTags;
   
   // Update local DOM only when prop content changes and we're not editing
   React.useEffect(() => {
@@ -476,21 +468,29 @@ const TextElementRenderer: React.FC<{
       const offset = range.startOffset;
       const lastChar = text[offset - 1];
       
-      if (lastChar === '@') {
-        const rect = range.getBoundingClientRect();
-        lastRangeRef.current = range.cloneRange();
-        setMergeTagConfig({
-          show: true,
-          position: { top: rect.bottom, left: rect.left },
-          query: ''
-        });
+      if (mergeTagTriggers.includes(lastChar)) {
+        const relevantTags = getMergeTagsByTrigger(lastChar);
+        if (relevantTags.length > 0) {
+          const rect = range.getBoundingClientRect();
+          lastRangeRef.current = range.cloneRange();
+          setMergeTagConfig({
+            show: true,
+            position: { top: rect.bottom, left: rect.left },
+            query: ''
+          });
+        }
       } else if (mergeTagConfig?.show) {
         lastRangeRef.current = range.cloneRange();
-        // Find text after @
+        // Find the trigger and query
         const textBeforeCursor = text.substring(0, offset);
-        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
-        if (lastAtIndex !== -1) {
-          const query = textBeforeCursor.substring(lastAtIndex + 1);
+        let lastTriggerIndex = -1;
+        mergeTagTriggers.forEach(t => {
+            const idx = textBeforeCursor.lastIndexOf(t);
+            if (idx > lastTriggerIndex) lastTriggerIndex = idx;
+        });
+
+        if (lastTriggerIndex !== -1) {
+          const query = textBeforeCursor.substring(lastTriggerIndex + 1);
           setMergeTagConfig(prev => prev ? { ...prev, query } : null);
         } else {
           setMergeTagConfig(null);
@@ -520,11 +520,16 @@ const TextElementRenderer: React.FC<{
         const text = container.textContent || '';
         const offset = range.startOffset;
         const textBefore = text.substring(0, offset);
-        const lastAtIndex = textBefore.lastIndexOf('@');
         
-        if (lastAtIndex !== -1) {
-          // Delete the @ and the following query text
-          range.setStart(container, lastAtIndex);
+        let lastTriggerIndex = -1;
+        mergeTagTriggers.forEach(t => {
+            const idx = textBefore.lastIndexOf(t);
+            if (idx > lastTriggerIndex) lastTriggerIndex = idx;
+        });
+        
+        if (lastTriggerIndex !== -1) {
+          // Delete the trigger and the following query text
+          range.setStart(container, lastTriggerIndex);
           range.setEnd(container, offset);
           range.deleteContents();
           
@@ -604,7 +609,7 @@ const TextElementRenderer: React.FC<{
           searchQuery={mergeTagConfig.query}
           onSelect={handleSelectTag}
           onClose={() => setMergeTagConfig(null)}
-          tags={mergeTags}
+          tags={availableTags}
         />,
         document.body
       )}
