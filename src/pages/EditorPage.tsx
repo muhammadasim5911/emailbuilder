@@ -432,6 +432,7 @@ export const EditorPage: React.FC<EditorPageProps> = ({
         onSave={() => {
           saveTemplate();
           showToast('Template saved successfully', 'success');
+          if (onSave) onSave();
         }}
         onExport={handleExport}
         onShowPreview={() => setShowPreview(true)}

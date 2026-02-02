@@ -40,11 +40,21 @@ function App() {
     })
   }, [setUser, setFeatures])
 
+  // Handle save from editor
+  const handleSave = (data: any) => {
+    console.log('Template saved!');
+    console.log('Template object:', data.template);
+    console.log('HTML export:', data.html);
+    console.log('JSON export:', data.json);
+    console.log('MJML export:', data.mjml);
+  };
+
   return (
     <EmailTemplateBuilder 
       mergeTags={demoMergeTags}
       mergeTagTriggers={['@', '#']}
       showFooter={true}
+      onSave={handleSave}
     />
   )
 }

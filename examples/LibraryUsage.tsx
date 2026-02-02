@@ -70,34 +70,6 @@ function ExampleApp() {
     console.log('JSON export:', data.json);
     console.log('MJML export:', data.mjml);
 
-    // Example: Send to backend
-    fetch('/api/email-templates', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        template: data.template,
-        html: data.html,
-        json: data.json,
-      }),
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        console.log('Saved to backend:', result);
-        alert('Template saved successfully!');
-      })
-      .catch((error) => {
-        console.error('Save error:', error);
-        alert('Failed to save template');
-      });
-
-    // Example: Download HTML file
-    const blob = new Blob([data.html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'email-template.html';
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   return (
