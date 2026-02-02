@@ -1,6 +1,8 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import type { EmailElement, ButtonElement, MergeTag } from '../../types';
+import { Button } from '../ui/button';
+import { toast as sonnerToast } from 'sonner';
 import clsx from 'clsx';
 
 interface CanvasElementProps {
@@ -386,18 +388,21 @@ const ColumnElementRenderer: React.FC<{
       {element.children && element.children.length > 0 ? (
         renderChildren(element.children)
       ) : !isFooter ? (
-        <div className="w-full flex-1 flex flex-col items-center justify-center gap-3 text-sm text-blue-500 border-2 border-dashed border-blue-200 rounded p-6 bg-blue-50/50">
-          <p className="text-center">No content here. Drag content from right.</p>
-          <button 
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm font-medium"
+        <div className="w-full flex-1 flex flex-col items-center justify-center gap-3 text-sm border-2 border-dashed border-blue-200 rounded p-6 bg-blue-50/50" style={{ color: '#3b82f6', borderColor: '#bfdbfe', backgroundColor: 'rgba(239, 246, 255, 0.5)' }}>
+          <p className="text-center font-medium">No content here. Drag content from right.</p>
+          <Button 
+            variant="default"
+            size="sm"
+            className="shadow-sm"
+            style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}
             onClick={(e) => {
               e.stopPropagation();
-              // TODO: Open element selector or show hint
-              alert('Drag elements from the right sidebar into this column');
+              // Show a hint
+              sonnerToast.info('Drag elements from the right sidebar');
             }}
           >
             Add Content
-          </button>
+          </Button>
         </div>
       ) : null}
     </div>

@@ -34,27 +34,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   hideTemplatesButton = false,
 }) => {
   return (
-    <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 gap-4">
-      {/* Left side - File actions */}
-      <div className="flex items-center gap-2">
-        {/* {onOpenTemplates && !hideTemplatesButton && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onOpenTemplates}
-            className="mr-2"
-          >
-            Templates
-          </Button>
-        )} */}
+    <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 gap-2 shrink-0">
+      {/* Left side - 1/3 */}
+      <div className="flex items-center gap-1 w-1/4 min-w-[120px]">
         <Button
           variant="ghost"
           size="sm"
           onClick={onUndo}
           title="Undo"
-          className="w-10 h-10 p-2 flex items-center justify-center text-gray-700"
+          className="w-9 h-9 p-0 flex items-center justify-center text-gray-700"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 7v6h6"/>
             <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
           </svg>
@@ -64,162 +54,83 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           size="sm"
           onClick={onRedo}
           title="Redo"
-          className="w-10 h-10 p-2 flex items-center justify-center text-gray-400"
+          className="w-9 h-9 p-0 flex items-center justify-center text-gray-400"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 7v6h-6"/>
             <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/>
           </svg>
         </Button>
-        <div className="h-6 w-px bg-gray-200" />
-        {/* {!hideSaveButton && (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={onSave}
-            className={isDirty ? 'ring-2 ring-blue-400' : ''}
-          >
-            {isDirty ? 'Save*' : 'Saved'}
-          </Button>
-        )} */}
+        <div className="h-6 w-px bg-gray-200 mx-1" />
       </div>
 
-      {/* Center - Device modes and Zoom controls */}
-      <div className="flex items-center gap-4">
+      {/* Center - 1/2 */}
+      <div className="flex items-center gap-2 justify-center flex-1 min-w-0">
         {/* Device Mode Switcher */}
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+        <div className="flex gap-0.5 bg-gray-100 rounded-md p-0.5 shrink-0">
           <button
             onClick={() => onDeviceModeChange('desktop')}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+            className={`p-1.5 rounded transition-colors ${
               deviceMode === 'desktop'
                 ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-500 hover:text-gray-900'
             }`}
-            title="Desktop (600px)"
           >
-            <Monitor className="w-4 h-4" />
+            <Monitor className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => onDeviceModeChange('tablet')}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+            className={`p-1.5 rounded transition-colors ${
               deviceMode === 'tablet'
                 ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-500 hover:text-gray-900'
             }`}
-            title="Tablet (480px)"
           >
-            <Tablet className="w-4 h-4" />
+            <Tablet className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => onDeviceModeChange('mobile')}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+            className={`p-1.5 rounded transition-colors ${
               deviceMode === 'mobile'
                 ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-500 hover:text-gray-900'
             }`}
-            title="Mobile (320px)"
           >
-            <Smartphone className="w-4 h-4" />
+            <Smartphone className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="h-6 w-px bg-gray-200" />
+        <div className="h-5 w-px bg-gray-200 hidden sm:block" />
 
         {/* Zoom controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 hidden sm:flex">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onZoomChange(Math.max(25, zoom - 10))}
-            className="w-8 h-8 p-0 text-xs"
+            className="w-7 h-7 p-0 text-xs"
           >
             −
           </Button>
-          <input
-            type="number"
-            min="25"
-            max="200"
-            value={zoom}
-            onChange={(e) => onZoomChange(parseInt(e.target.value))}
-            className="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center"
-          />
-          <span className="text-sm text-gray-600 w-6">%</span>
+          <span className="text-xs text-gray-600 min-w-[32px] text-center font-medium">{zoom}%</span>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onZoomChange(Math.min(200, zoom + 10))}
-            className="w-8 h-8 p-0 text-xs"
+            className="w-7 h-7 p-0 text-xs"
           >
             +
           </Button>
         </div>
       </div>
 
-      {/* Right side - Preview and Export (only shown if callbacks provided) */}
-      {/* {(onShowPreview || onExport) && (
-        <div className="flex items-center gap-2">
-          {onShowPreview && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={onShowPreview}
-            >
-              Preview
-            </Button>
-          )}
-          {onExport && (
-            <div className="relative">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const menu = e.currentTarget.nextElementSibling;
-                  if (menu) {
-                    menu.classList.toggle('hidden');
-                  }
-                }}
-              >
-                Export ▼
-              </Button>
-              <div className="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                <button
-                  onClick={() => onExport('html')}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm rounded-t-lg"
-                >
-                  Export as HTML
-                </button>
-                <button
-                  onClick={() => onExport('json')}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t"
-                >
-                  Export as JSON
-                </button>
-                <button
-                  onClick={() => onExport('mjml')}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t"
-                >
-                  Export as MJML
-                </button>
-                <button
-                  onClick={() => onExport('amp')}
-                  className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t rounded-b-lg"
-                >
-                  Export as AMP
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )} */}
-
-      {/* Right side - Preview and Export */}
-      <div className="flex items-center gap-2 min-w-[100px] justify-end">
+      {/* Right side - 1/4 */}
+      <div className="flex items-center gap-2 w-1/4 min-w-[80px] justify-end">
         <Button
           variant="default"
           size="sm"
           onClick={onSave}
-          className={'ring-2 ring-blue-400 shrink-0'}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 h-9 shadow-sm"
         >
           Save
         </Button>
