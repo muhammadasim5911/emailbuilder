@@ -67,36 +67,39 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       {/* Center - 1/2 */}
       <div className="flex items-center gap-2 justify-center flex-1 min-w-0">
         {/* Device Mode Switcher */}
-        <div className="flex gap-0.5 bg-gray-100 rounded-md p-0.5 shrink-0">
+        <div className="flex gap-1 bg-gray-100 rounded-lg p-1 shrink-0">
           <button
             onClick={() => onDeviceModeChange('desktop')}
-            className={`p-1.5 rounded transition-colors ${
+            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
               deviceMode === 'desktop'
                 ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
+            title="Desktop (600px)"
           >
-            <Monitor className="w-3.5 h-3.5" />
+            <Monitor className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDeviceModeChange('tablet')}
-            className={`p-1.5 rounded transition-colors ${
+            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
               deviceMode === 'tablet'
                 ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
+            title="Tablet (480px)"
           >
-            <Tablet className="w-3.5 h-3.5" />
+            <Tablet className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDeviceModeChange('mobile')}
-            className={`p-1.5 rounded transition-colors ${
+            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
               deviceMode === 'mobile'
                 ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-500 hover:text-gray-900'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
+            title="Mobile (320px)"
           >
-            <Smartphone className="w-3.5 h-3.5" />
+            <Smartphone className="w-4 h-4" />
           </button>
         </div>
 
