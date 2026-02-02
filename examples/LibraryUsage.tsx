@@ -106,7 +106,6 @@ function ExampleApp() {
         // Merge tags configuration
         mergeTags={mergeTags}
         mergeTagTriggers={['@', '#']} // Configurable triggers
-        
         // Callbacks
         onChange={handleChange}
         onSave={handleSave}

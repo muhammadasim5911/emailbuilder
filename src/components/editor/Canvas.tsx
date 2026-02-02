@@ -70,15 +70,52 @@ export const Canvas: React.FC<CanvasProps> = ({
     setActiveId(event.active.id as string);
   };
 
+  // Helper to check if an element is a descendant of another
+  const isDescendant = (parentId: string, childId: string): boolean => {
+    if (!template) return false;
+    
+    const findInChildren = (elements: EmailElement[]): boolean => {
+      for (const el of elements) {
+        if (el.id === parentId) {
+          // Found parent, now check if childId is in its subtree
+          const checkDescendants = (children: EmailElement[]): boolean => {
+            for (const child of children) {
+              if (child.id === childId) return true;
+              if ('children' in child && (child as any).children) {
+                if (checkDescendants((child as any).children)) return true;
+              }
+            }
+            return false;
+          };
+          if ('children' in el && (el as any).children) {
+            return checkDescendants((el as any).children);
+          }
+          return false;
+        }
+        if ('children' in el && (el as any).children) {
+          if (findInChildren((el as any).children)) return true;
+        }
+      }
+      return false;
+    };
+    
+    return findInChildren(template.elements);
+  };
+
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    console.log('DragOver:', { active: active.id, over: over?.id, overData: over?.data.current });
     if (!over || !onMoveElement) return;
 
     const activeId = active.id as string;
     const overId = over.id as string;
 
     if (activeId === overId) return;
+    
+    // Skip if the over element is a descendant of the active element
+    // This prevents the "self-hover" problem when dragging rows
+    if (isDescendant(activeId, overId)) {
+      return;
+    }
 
     // We rely on the store's smart moveElement logic to handle tree traversals
     // This might trigger re-renders, which is standard for dnd-kit nested lists

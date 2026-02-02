@@ -426,13 +426,19 @@ export const useEditorStore = create<EditorStore>((set, get) => {
             'section': ['row'],
           };
           
-          const allowed = validRelationships[parentType]?.includes(childType) ?? false;
-          
-          if (parentType === 'row' && childType === 'column') {
-            return true;
+          return validRelationships[parentType]?.includes(childType) ?? false;
+        };
+
+        // Helper to find an element by ID
+        const findElement = (items: EmailElement[], id: string): EmailElement | null => {
+          for (const item of items) {
+            if (item.id === id) return item;
+            if ('children' in item && (item as any).children) {
+              const found = findElement((item as any).children, id);
+              if (found) return found;
+            }
           }
-          
-          return allowed;
+          return null;
         };
 
         // Helper to find parent container and index
@@ -449,67 +455,102 @@ export const useEditorStore = create<EditorStore>((set, get) => {
           return { container: null, index: -1, parentElement: null };
         };
 
-        // Find active element (source) and target element BEFORE removal to preserve indices
-        const source = findParent(newElements, activeId);
-        const target = findParent(newElements, overId);
+        // Get element types
+        const activeElement = findElement(newElements, activeId);
+        const overElement = findElement(newElements, overId);
+        
+        if (!activeElement || !overElement) return state as any;
 
+        // Find sources and determine reordering context
+        const source = findParent(newElements, activeId);
+        let target = findParent(newElements, overId);
+        
         if (!source.container) return state as any;
 
-        const [movedElement] = source.container.splice(source.index, 1);
+        // Special handling for row reordering:
+        // If dragging a row and the target is a child (column/content), 
+        // find the target's parent row and reorder at that level
+        if (activeElement.type === 'row') {
+          
+          // Find the nearest row ancestor of the drop target
+          let targetRow = overElement;
+          let targetParent = target.parentElement;
+          
+          // Walk up to find a row (if target is not already a row at root level)
+          while (targetRow && targetRow.type !== 'row' && targetParent) {
+            targetRow = targetParent;
+            const parentInfo = findParent(newElements, targetRow.id);
+            targetParent = parentInfo.parentElement;
+          }
+          
+          // If we found a row that's different from active, use it as target
+          if (targetRow && targetRow.type === 'row' && targetRow.id !== activeId) {
+            target = findParent(newElements, targetRow.id);
+          } else if (overElement.type !== 'row') {
+            // Target is not a row and doesn't have a row ancestor at the same level
+            // Don't perform any operation
+            return state as any;
+          }
+        }
 
-        if (!target.container) {
-             const findElement = (items: EmailElement[], id: string): EmailElement | null => {
-                for (const item of items) {
-                    if (item.id === id) return item;
-                    if ('children' in item && (item as any).children) {
-                        const found = findElement((item as any).children, id);
-                        if (found) return found;
-                    }
-                }
-                return null;
-             };
-             const containerElement = findElement(newElements, overId);
-             if (containerElement && 'children' in containerElement) {
-                 if (!canBeChild(movedElement.type, containerElement.type)) {
-                   console.warn(`Cannot add ${movedElement.type} inside ${containerElement.type}`);
-                   source.container.splice(source.index, 0, movedElement);
-                   return state as any;
-                 }
-                 (containerElement as any).children.push(movedElement);
-             } else {
-                 source.container.splice(source.index, 0, movedElement);
-                 return state as any;
-             }
-        } else {
-            // Re-find target index in case it was in the same container and shifted
-            // Actually, we can just use the target we found earlier if we handle the shift
-            let targetIndex = target.index;
+        if (!target.container) return state as any;
+
+        // Check if both are in the same container
+        const sourceParentId = source.parentElement?.id ?? 'root';
+        const targetParentId = target.parentElement?.id ?? 'root';
+        const isSameContainer = sourceParentId === targetParentId;
+        
+        if (isSameContainer) {
+            // Same container reordering
+            const parentType = source.parentElement ? source.parentElement.type : 'root';
+            const activeType = source.container[source.index].type;
             
-            // If dragging within the same container and moving downwards, 
-            // the target index shifts by -1 after removal of source
-            if (source.container === target.container && source.index < target.index) {
-                // No, wait. If we move from 0 to 1 in [A, B, C]. 
-                // Remove A: [B, C]. We want A to be AFTER B. B is now at index 0. 
-                // So we should insert at index 1.
-                // target.index was 1. So targetIndex stays 1.
-                // Wait, if we want A to be AT the position of B, we insert at 1. Correct.
+            if (!canBeChild(activeType, parentType)) {
+              console.warn(`Cannot reorder ${activeType} in ${parentType}`);
+              return state as any;
             }
 
+            const oldIndex = source.index;
+            const newIndex = target.index;
+            
+            // Skip if indices are the same
+            if (oldIndex === newIndex) return state as any;
+            
+            // Skip if already adjacent in the target direction to prevent oscillation
+            // during continuous dragOver events
+            if (Math.abs(oldIndex - newIndex) === 1) {
+              // Elements are adjacent - only move if we're moving in the correct direction
+              // This prevents the back-and-forth swapping during prolonged drag
+              const movingUp = newIndex < oldIndex;
+              if (movingUp && source.container[newIndex].id === overId) {
+                // Already positioned correctly relative to target
+                return state as any;
+              }
+            }
+            
+            // Use array move logic - remove from old position and insert at new
+            const [movedElement] = source.container.splice(oldIndex, 1);
+            source.container.splice(newIndex, 0, movedElement);
+        } else {
+            // Different container - move between containers
             const parentType = target.parentElement ? target.parentElement.type : 'root';
-            if (!canBeChild(movedElement.type, parentType)) {
-              console.warn(`Cannot add ${movedElement.type} inside ${parentType}`);
-              source.container.splice(source.index, 0, movedElement);
+            const activeType = source.container[source.index].type;
+            
+            if (!canBeChild(activeType, parentType)) {
+              console.warn(`Cannot move ${activeType} into ${parentType}`);
               return state as any;
             }
             
-            // Refind target container and index because they might have been part of the movedElement tree 
-            // (though dnd-kit usually prevents dragging into own child)
+            // Remove from source
+            const [movedElement] = source.container.splice(source.index, 1);
+            
+            // Re-find target after removal (indices might have shifted if same array)
             const finalTarget = findParent(newElements, overId);
             if (finalTarget.container) {
-                finalTarget.container.splice(finalTarget.index, 0, movedElement);
+              finalTarget.container.splice(finalTarget.index, 0, movedElement);
             } else {
-                // Fallback
-                source.container.splice(source.index, 0, movedElement);
+              // Fallback: put it back
+              source.container.splice(source.index, 0, movedElement);
             }
         }
 

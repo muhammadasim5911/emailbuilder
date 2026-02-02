@@ -15,22 +15,27 @@ interface CanvasElementProps {
   selectedElementId?: string | null;
 }
 
-import { useSortable } from '@dnd-kit/sortable';
+import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable, useDndContext } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 
 // Dedicated drag handle component for rows
-const DragHandle = ({ listeners, attributes }: { listeners?: any; attributes?: any }) => (
+const DragHandle = ({ listeners, attributes, isVisible }: { listeners?: any; attributes?: any; isVisible: boolean }) => (
   <div
     {...listeners}
     {...attributes}
-    className="absolute -right-8 top-1/2 -translate-y-1/2 w-6 h-6 bg-blue-500 rounded-full cursor-move flex items-center justify-center text-white shadow-lg hover:bg-blue-600 transition-colors z-30 opacity-0 group-hover:opacity-100"
+    className={clsx(
+      "absolute -right-6 top-1/2 -translate-y-1/2 w-6 h-10 bg-blue-500 rounded-sm cursor-move flex flex-col items-center justify-center text-white shadow-lg hover:bg-blue-600 transition-opacity z-30",
+      isVisible ? "opacity-100" : "opacity-0"
+    )}
     title="Drag to reorder row"
     onClick={(e) => e.stopPropagation()}
   >
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6 1L6 11M1 6L11 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
+    <div className="grid grid-cols-2 gap-0.5 opacity-80">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="w-0.5 h-0.5 bg-white rounded-full"></div>
+      ))}
+    </div>
   </div>
 );
 
@@ -51,7 +56,10 @@ const RenderChildren = ({
   selectedElementId: string | null
 }) => {
   return (
-    <>
+    <SortableContext
+      items={elements.map(el => el.id)}
+      strategy={verticalListSortingStrategy}
+    >
       {elements.map(child => (
         <CanvasElement
           key={child.id}
@@ -64,7 +72,7 @@ const RenderChildren = ({
           selectedElementId={selectedElementId}
         />
       ))}
-    </>
+    </SortableContext>
   );
 };
 
@@ -98,6 +106,8 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     transition,
     isDragging,
   } = sortableResult;
+
+  const [hover, setHover] = React.useState(false);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -146,7 +156,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 999 : 1,
-    position: 'relative', 
+    position: 'relative',
+    // Disable pointer events on the dragged element so collision detection hits elements underneath
+    pointerEvents: isDragging ? 'none' : 'auto', 
   };
 
   if (!element.visible) {
@@ -172,6 +184,8 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       style={baseStyle}
       {...containerAttributes}
       {...containerListeners}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       onClick={handleClick}
       className={clsx(
         'relative transition-all cursor-pointer group',
@@ -229,7 +243,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
               )}
           />
           {/* Dedicated drag handle for rows */}
-          <DragHandle listeners={listeners} attributes={attributes} />
+          <DragHandle listeners={listeners} attributes={attributes} isVisible={isSelected || hover || isHovered} />
         </>
       )}
         {element.type === 'section' && (
@@ -249,10 +263,10 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       )}
 
       {/* Floating Toolbar (Delete/Drag) */}
-      {(isSelected || isHovered) && !isDragging && (
+      {(isSelected || hover || isHovered) && !isDragging && (
         <div className={clsx(
             "absolute -top-6 right-0 flex gap-1 bg-primary text-primary-foreground px-2 py-0.5 rounded-t-md text-xs z-20 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity",
-            isSelected && "opacity-100" // Persistent when selected
+            (isSelected || hover) && "opacity-100" // Persistent when selected or hovered
         )}>
            <span className="uppercase text-[10px] font-bold mr-2 opacity-80">{element.type}</span>
           <button
