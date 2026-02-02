@@ -225,6 +225,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         <ColumnElementRenderer 
             element={element as any} 
             onAddChild={onAddChild}
+            isFooter={isFooter}
             renderChildren={(children) => (
                 <RenderChildren 
                     elements={children} 
@@ -304,13 +305,15 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 const ColumnElementRenderer: React.FC<{ 
     element: any, 
     onAddChild?: (parentId: string, elementType: string) => void,
-    renderChildren: (children: any[]) => React.ReactNode
-}> = ({ element, onAddChild, renderChildren }) => {
+    renderChildren: (children: any[]) => React.ReactNode,
+    isFooter?: boolean
+}> = ({ element, onAddChild, renderChildren, isFooter = false }) => {
   const [isNativeOver, setIsNativeOver] = React.useState(false);
   
-  // Use dnd-kit's drop indicator
+  // Use dnd-kit's drop indicator - DISABLED for footer columns
   const { setNodeRef, isOver } = useDroppable({
     id: element.id,
+    disabled: isFooter, // Disable dropping for footer columns
     data: {
       type: element.type,
       accepts: ['text', 'image', 'button', 'divider', 'spacer', 'heading']
@@ -319,43 +322,48 @@ const ColumnElementRenderer: React.FC<{
   
   // Get current drag context
   const { active } = useDndContext();
-  const isSomethingBeingDragged = active !== null;
-  const isDraggedOver = isOver || isNativeOver;
+  const isSomethingBeingDragged = active !== null && !isFooter;
+  const isDraggedOver = !isFooter && (isOver || isNativeOver);
+
+  // For footer columns, don't allow any drop events
+  const dropHandlers = isFooter ? {} : {
+    onDragOver: (e: React.DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      if (!isNativeOver) setIsNativeOver(true);
+    },
+    onDragEnter: (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsNativeOver(true);
+    },
+    onDragLeave: (e: React.DragEvent) => {
+      e.preventDefault();
+      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+           setIsNativeOver(false);
+      }
+    },
+    onDrop: (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsNativeOver(false);
+      const elementType = e.dataTransfer.getData('elementType');
+      if (elementType && onAddChild) {
+          onAddChild(element.id, elementType);
+      }
+    }
+  };
 
   return (
     <div
       ref={setNodeRef}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
-        if (!isNativeOver) setIsNativeOver(true);
-      }}
-      onDragEnter={(e) => {
-        e.preventDefault();
-        setIsNativeOver(true);
-      }}
-      onDragLeave={(e) => {
-        e.preventDefault();
-        // Check if we are actually leaving the element and not just entering a child
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-             setIsNativeOver(false);
-        }
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsNativeOver(false);
-        const elementType = e.dataTransfer.getData('elementType');
-        if (elementType && onAddChild) {
-            onAddChild(element.id, elementType);
-        }
-      }}
+      {...dropHandlers}
       style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: element.horizontalAlign === 'center' ? 'center' : element.horizontalAlign === 'right' ? 'flex-end' : 'flex-start',
-        verticalAlign: 'top',
-        minHeight: '80px',
+        justifyContent: isFooter ? 'flex-end' : 'flex-start', // Footer content at bottom
+        verticalAlign: isFooter ? 'bottom' : 'top',
+        minHeight: isFooter ? 'auto' : '80px',
         width: '100%',
         height: '100%',
         outline: isDraggedOver ? '2px dashed #0ea5e9' : 'none',
@@ -363,9 +371,10 @@ const ColumnElementRenderer: React.FC<{
         transition: 'all 0.2s',
         boxSizing: 'border-box',
         position: 'relative',
+        pointerEvents: isFooter ? 'none' : 'auto', // Disable pointer events on footer columns
       }}
     >
-      {/* Drop Indicator Overlay */}
+      {/* Drop Indicator Overlay - Not for footer */}
       {isDraggedOver && isSomethingBeingDragged && (
         <div className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center">
           <div className="bg-blue-500 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-xl animate-pulse">
@@ -376,7 +385,7 @@ const ColumnElementRenderer: React.FC<{
       
       {element.children && element.children.length > 0 ? (
         renderChildren(element.children)
-      ) : (
+      ) : !isFooter ? (
         <div className="w-full flex-1 flex flex-col items-center justify-center gap-3 text-sm text-blue-500 border-2 border-dashed border-blue-200 rounded p-6 bg-blue-50/50">
           <p className="text-center">No content here. Drag content from right.</p>
           <button 
@@ -390,7 +399,7 @@ const ColumnElementRenderer: React.FC<{
             Add Content
           </button>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

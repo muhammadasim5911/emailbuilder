@@ -200,12 +200,14 @@ export const Canvas: React.FC<CanvasProps> = ({
               const scale = zoom / 100;
               const y = (e.clientY - rect.top) / scale;
               
-              // Find insertion index by comparing Y to existing elements
-              let dropIndex = template.elements.length;
-              const canvasElements = e.currentTarget.children[0].children; // Access elements within SortableContext
+              // Filter out footer elements - they should not be part of drop calculations
+              const nonFooterElements = template.elements.filter(el => !(el as any)._isFooter);
               
-              for (let i = 0; i < template.elements.length; i++) {
-                const elementId = template.elements[i].id;
+              // Find insertion index by comparing Y to existing non-footer elements
+              let dropIndex = nonFooterElements.length; // Insert before footer by default
+              
+              for (let i = 0; i < nonFooterElements.length; i++) {
+                const elementId = nonFooterElements[i].id;
                 const node = document.querySelector(`[data-element-id="${elementId}"]`);
                 if (node) {
                   const nodeRect = node.getBoundingClientRect();
@@ -231,6 +233,8 @@ export const Canvas: React.FC<CanvasProps> = ({
                 ['--canvas-device-mode' as any]: deviceMode,
               }}
             >
+              {/* Regular elements (sortable) */}
+              <div className="flex-1">
                <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -239,10 +243,10 @@ export const Canvas: React.FC<CanvasProps> = ({
                 onDragEnd={handleDragEnd}
               >
                 <SortableContext
-                  items={template.elements.map(el => el.id)}
+                  items={template.elements.filter(el => !(el as any)._isFooter).map(el => el.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  {template.elements.map((element) => (
+                  {template.elements.filter(el => !(el as any)._isFooter).map((element) => (
                     <CanvasElement
                       key={element.id}
                       element={element}
@@ -273,6 +277,22 @@ export const Canvas: React.FC<CanvasProps> = ({
                     document.body
                   )}
               </DndContext>
+              </div>
+              
+              {/* Footer elements (non-sortable, always at bottom) */}
+              {template.elements.filter(el => (el as any)._isFooter).map((element) => (
+                <div key={element.id} className="mt-auto">
+                  <CanvasElement
+                    element={element}
+                    isSelected={false}
+                    onSelect={() => {}} // Footer is not selectable
+                    onUpdate={() => {}}
+                    onDelete={() => {}}
+                    onAddChild={onAddChild}
+                    selectedElementId={selectedElementId}
+                  />
+                </div>
+              ))}
             </div>
         </div>
       </div>
