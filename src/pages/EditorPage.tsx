@@ -419,7 +419,7 @@ export const EditorPage: React.FC<EditorPageProps> = ({
   };
 
   return (
-    <div className="h-screen bg-background flex flex-col font-sans text-foreground">
+    <div className="email-builder-theme h-full min-h-[600px] bg-background flex flex-col font-sans text-foreground overflow-hidden">
       {/* Toolbar */}
       <Toolbar
         zoom={zoom}
@@ -540,7 +540,7 @@ export const EditorPage: React.FC<EditorPageProps> = ({
           bg-background flex flex-col z-40 shadow-lg border-l
           transform transition-transform duration-300 ease-in-out
           ${isMobileSidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
-          top-[53px] md:top-0 h-[calc(100%-53px)] md:h-auto
+          h-full md:h-auto
         `}>
             <RightSidebar 
                 selectedElement={selectedElement}

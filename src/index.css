@@ -2,21 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
-}
 
 @layer base {
-  :root {
+  .email-builder-theme {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -44,7 +32,7 @@ body,
     --chart-5: 27 87% 67%;
   }
 
-  .dark {
+  .email-builder-theme.dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -70,13 +58,12 @@ body,
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-}
 
-@layer base {
-  * {
+  .email-builder-theme * {
     border-color: hsl(var(--border));
   }
-  body {
+
+  .email-builder-theme {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }

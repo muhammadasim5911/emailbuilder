@@ -213,14 +213,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
       )} */}
 
-          <Button
-            variant="default"
-            size="sm"
-            onClick={onSave}
-            className={'ring-2 ring-blue-400'}
-          >
-            Save
-          </Button>
+      {/* Right side - Preview and Export */}
+      <div className="flex items-center gap-2 min-w-[100px] justify-end">
+        <Button
+          variant="default"
+          size="sm"
+          onClick={onSave}
+          className={'ring-2 ring-blue-400 shrink-0'}
+        >
+          Save
+        </Button>
+      </div>
     </div>
   );
 };
