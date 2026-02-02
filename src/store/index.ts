@@ -821,11 +821,17 @@ export const useMergeTagStore = create<MergeTagStore>((set, get) => ({
   mergeTagTriggers: [], 
   
   setMergeTags: (tags: MergeTag[]) => {
-    set({ mergeTags: tags });
+    const currentTags = get().mergeTags;
+    if (JSON.stringify(currentTags) !== JSON.stringify(tags)) {
+      set({ mergeTags: tags });
+    }
   },
 
   setMergeTagTriggers: (triggers: string[]) => {
-    set({ mergeTagTriggers: triggers });
+    const currentTriggers = get().mergeTagTriggers;
+    if (JSON.stringify(currentTriggers) !== JSON.stringify(triggers)) {
+      set({ mergeTagTriggers: triggers });
+    }
   },
 
   getMergeTagsByTrigger: (trigger: string) => {
