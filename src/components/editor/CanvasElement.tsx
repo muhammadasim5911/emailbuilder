@@ -20,14 +20,17 @@ import { useDroppable, useDndContext } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 
 // Dedicated drag handle component for rows
+// Uses CSS group-hover to stay visible when parent row is hovered
 const DragHandle = ({ listeners, attributes, isVisible }: { listeners?: any; attributes?: any; isVisible: boolean }) => (
   <div
     {...listeners}
     {...attributes}
     className={clsx(
       "absolute -right-6 top-1/2 -translate-y-1/2 w-6 h-10 bg-blue-500 rounded-sm cursor-move flex flex-col items-center justify-center text-white shadow-lg hover:bg-blue-600 transition-opacity z-30",
-      isVisible ? "opacity-100" : "opacity-0"
+      // Show on selection/isVisible OR via CSS group-hover on parent
+      isVisible ? "opacity-100" : "opacity-0 group-hover:opacity-100"
     )}
+    style={{ pointerEvents: 'auto' }} // Always allow interaction even when parent has pointer-events: none
     title="Drag to reorder row"
     onClick={(e) => e.stopPropagation()}
   >
