@@ -97,7 +97,7 @@ export const EditorPage: React.FC<EditorPageProps> = ({
                 label: 'Content Column',
                 children: [
                   { id: uuidv4(), type: 'text' as const, content: 'Welcome to our platform!', fontSize: 24, textAlign: 'center' as const, padding: { top: 20, bottom: 20, left: 20, right: 20 }, margin: { top: 0, bottom: 0, left: 0, right: 0 }, visible: true, locked: false },
-                  { id: uuidv4(), type: 'image' as const, src: 'https://via.placeholder.com/600x200', alt: 'Welcome Banner', width: '100%', height: 'auto', padding: { top: 10, bottom: 10, left: 0, right: 0 }, margin: { top: 0, bottom: 0, left: 0, right: 0 }, visible: true, locked: false },
+                  { id: uuidv4(), type: 'image' as const, src: 'https://picsum.photos/seed/welcome/600/200', alt: 'Welcome Banner', width: '100%', height: 'auto', padding: { top: 10, bottom: 10, left: 0, right: 0 }, margin: { top: 0, bottom: 0, left: 0, right: 0 }, visible: true, locked: false },
                   { id: uuidv4(), type: 'text' as const, content: 'We are excited to have you on board.', fontSize: 16, padding: { top: 10, bottom: 10, left: 20, right: 20 }, margin: { top: 0, bottom: 0, left: 0, right: 0 }, visible: true, locked: false }
                 ],
                 width: '100%',
