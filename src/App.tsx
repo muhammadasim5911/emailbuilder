@@ -44,6 +44,7 @@ function App() {
     <EmailTemplateBuilder 
       mergeTags={demoMergeTags}
       mergeTagTriggers={['@', '#']}
+      showFooter={true}
     />
   )
 }

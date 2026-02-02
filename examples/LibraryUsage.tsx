@@ -110,6 +110,9 @@ function ExampleApp() {
         onChange={handleChange}
         onSave={handleSave}
         
+        // Footer configuration
+        showFooter={true}  // Shows "Powered by Public Circles" and "Unsubscribe" footer
+        
         // UI customization (all optional)
         // Note: Preview, Export, and Templates buttons are automatically hidden
         // when their callbacks (onShowPreview, onExport, onOpenTemplates) are not provided

@@ -89,8 +89,11 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   onAddChild,
   selectedElementId,
 }) => {
-  // Only use sortable for rows and content elements (NOT columns)
-  const shouldBeSortable = element.type !== 'column';
+  // Check if this is a footer element (should be completely non-interactive)
+  const isFooter = !!(element as any)._isFooter || element.locked;
+  
+  // Only use sortable for rows and content elements (NOT columns and NOT footer)
+  const shouldBeSortable = element.type !== 'column' && !isFooter;
   
   const sortableResult = useSortable({ 
     id: element.id,
@@ -114,6 +117,8 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Don't select footer elements
+    if (isFooter) return;
     console.log('CanvasElement clicked:', element.id, element.type, 'isSelected:', isSelected);
     onSelect(element.id);
   };
@@ -187,13 +192,15 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       style={baseStyle}
       {...containerAttributes}
       {...containerListeners}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      onMouseEnter={() => !isFooter && setHover(true)}
+      onMouseLeave={() => !isFooter && setHover(false)}
       onClick={handleClick}
       className={clsx(
-        'relative transition-all cursor-pointer group',
-        isSelected && 'ring-2 ring-blue-500 bg-blue-50/10',
-        !isSelected && 'hover:ring-1 hover:ring-blue-300',
+        'relative transition-all group',
+        !isFooter && 'cursor-pointer',
+        isFooter && 'pointer-events-auto cursor-default',
+        !isFooter && isSelected && 'ring-2 ring-blue-500 bg-blue-50/10',
+        !isFooter && !isSelected && 'hover:ring-1 hover:ring-blue-300',
         isDragging && 'opacity-50',
       )}
       data-element-id={element.id}
@@ -245,8 +252,10 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                   />
               )}
           />
-          {/* Dedicated drag handle for rows */}
-          <DragHandle listeners={listeners} attributes={attributes} isVisible={isSelected || hover || isHovered} />
+          {/* Dedicated drag handle for rows - NOT for footer */}
+          {!isFooter && (
+            <DragHandle listeners={listeners} attributes={attributes} isVisible={isSelected || hover || isHovered} />
+          )}
         </>
       )}
         {element.type === 'section' && (
@@ -265,8 +274,8 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         />
       )}
 
-      {/* Floating Toolbar (Delete/Drag) */}
-      {(isSelected || hover || isHovered) && !isDragging && (
+      {/* Floating Toolbar (Delete/Drag) - NOT for footer elements */}
+      {!isFooter && (isSelected || hover || isHovered) && !isDragging && (
         <div className={clsx(
             "absolute -top-6 right-0 flex gap-1 bg-primary text-primary-foreground px-2 py-0.5 rounded-t-md text-xs z-20 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity",
             (isSelected || hover) && "opacity-100" // Persistent when selected or hovered

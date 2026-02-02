@@ -22,6 +22,10 @@ export const EmailTemplateBuilder: React.FC<EmailTemplateBuilderProps> = ({
   hideSettingsPanel = false,
   hideSaveButton = false,
   hideTemplatesButton = false,
+  // Footer configuration
+  showFooter = false,
+  showPoweredBy,
+  includeUnsubscribe,
 }) => {
   const { currentTemplate, loadTemplate } = useEditorStore();
   const { setMergeTags, setMergeTagTriggers } = useMergeTagStore();
@@ -68,6 +72,9 @@ export const EmailTemplateBuilder: React.FC<EmailTemplateBuilderProps> = ({
       hideSettingsPanel={hideSettingsPanel}
       hideSaveButton={hideSaveButton}
       onSave={handleSave}
+      showFooter={showFooter}
+      showPoweredBy={showPoweredBy ?? showFooter}
+      includeUnsubscribe={includeUnsubscribe ?? showFooter}
     />
   );
 };

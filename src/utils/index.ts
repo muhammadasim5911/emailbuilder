@@ -540,3 +540,6 @@ export const createDefaultElement = (type: string): Partial<EmailElement> => {
 
 // Export HTML parser
 export { parseEmailHTML } from './htmlParser';
+
+// Export footer utilities
+export { createFooterRowsJson, removeFooterRows, injectFooterRows } from './footer';

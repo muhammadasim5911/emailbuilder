@@ -341,4 +341,10 @@ export interface EmailTemplateBuilderProps {
   hideSettingsPanel?: boolean;
   hideSaveButton?: boolean;
   hideTemplatesButton?: boolean;
+  
+  // Footer configuration
+  showFooter?: boolean;              // Enable footer display
+  showPoweredBy?: boolean;           // Show "Powered by Public Circles" (default: true when showFooter is true)
+  includeUnsubscribe?: boolean;      // Show unsubscribe link (default: true when showFooter is true)
 }
+

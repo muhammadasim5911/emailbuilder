@@ -5,7 +5,7 @@ import { Toolbar, Canvas, RightSidebar, LayersPanel, TemplateLibraryModal } from
 import { Button } from '../components/ui/button';
 import { Toast } from '../components/base';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
-import { exportTemplate, createDefaultElement, findElementDeep, findParentElement, parseEmailHTML } from '../utils';
+import { exportTemplate, createDefaultElement, findElementDeep, findParentElement, parseEmailHTML, injectFooterRows } from '../utils';
 import type { ExportOptions } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -16,6 +16,10 @@ interface EditorPageProps {
   hideSettingsPanel?: boolean;
   hideSaveButton?: boolean;
   onSave?: () => void;
+  // Footer configuration
+  showFooter?: boolean;
+  showPoweredBy?: boolean;
+  includeUnsubscribe?: boolean;
 }
 
 export const EditorPage: React.FC<EditorPageProps> = ({
@@ -25,6 +29,9 @@ export const EditorPage: React.FC<EditorPageProps> = ({
   hideSettingsPanel,
   hideSaveButton,
   onSave,
+  showFooter = false,
+  showPoweredBy = false,
+  includeUnsubscribe = false,
 }) => {
   const [showPreview, setShowPreview] = useState(false);
   const [exportFormat, setExportFormat] = useState<'html' | 'json' | 'mjml' | 'amp'>('html');
@@ -309,6 +316,25 @@ export const EditorPage: React.FC<EditorPageProps> = ({
       createTemplate('Email Template 1', 'Start building your email');
     }
   }, [currentTemplate, createTemplate]);
+
+  // Inject footer rows when showFooter is enabled
+  useEffect(() => {
+    if (!currentTemplate || !showFooter) return;
+    
+    // Check if footer already exists
+    const hasFooter = currentTemplate.elements.some((el: any) => el._isFooter);
+    
+    if (!hasFooter && (showPoweredBy || includeUnsubscribe)) {
+      // Inject footer rows
+      const updatedElements = injectFooterRows(
+        currentTemplate.elements,
+        showPoweredBy,
+        includeUnsubscribe
+      );
+      
+      updateTemplate({ elements: updatedElements as any });
+    }
+  }, [currentTemplate?.id, showFooter, showPoweredBy, includeUnsubscribe]);
 
   // Keyboard shortcuts
   useEffect(() => {
