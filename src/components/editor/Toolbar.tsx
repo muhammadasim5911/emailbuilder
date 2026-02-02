@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button } from '../base';
+import { Button } from '../ui/button';
+import { Monitor, Tablet, Smartphone } from 'lucide-react';
 
 interface ToolbarProps {
   zoom: number;
@@ -96,7 +97,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             }`}
             title="Desktop (600px)"
           >
-            🖥️
+            <Monitor className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDeviceModeChange('tablet')}
@@ -107,7 +108,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             }`}
             title="Tablet (480px)"
           >
-            📱
+            <Tablet className="w-4 h-4" />
           </button>
           <button
             onClick={() => onDeviceModeChange('mobile')}
@@ -118,7 +119,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             }`}
             title="Mobile (320px)"
           >
-            📱
+            <Smartphone className="w-4 h-4" />
           </button>
         </div>
 
@@ -213,7 +214,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       )} */}
 
           <Button
-            variant="primary"
+            variant="default"
             size="sm"
             onClick={onSave}
             className={'ring-2 ring-blue-400'}

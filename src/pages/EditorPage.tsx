@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { exportTemplate, createDefaultElement, findElementDeep, findParentElement, parseEmailHTML, injectFooterRows } from '../utils';
 import type { ExportOptions } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { PanelRightClose, PanelRightOpen } from 'lucide-react';
 
 interface EditorPageProps {
   readOnly?: boolean;
@@ -38,6 +39,7 @@ export const EditorPage: React.FC<EditorPageProps> = ({
   const [showExportModal, setShowExportModal] = useState(false);
   const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
   const [deviceMode, setDeviceMode] = useState<'desktop' | 'mobile' | 'tablet'>('desktop');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; visible: boolean }>({
     message: '',
     type: 'info',
@@ -436,7 +438,7 @@ export const EditorPage: React.FC<EditorPageProps> = ({
       />
 
       {/* Main Editor Layout */}
-      <div className="flex flex-1 overflow-hidden gap-4 p-4 bg-muted/20">
+      <div className="flex flex-1 overflow-hidden gap-2 md:gap-4 p-2 md:p-4 bg-muted/20 relative">
         {/* Left Sidebar - Elements */}
 
 
@@ -507,8 +509,37 @@ export const EditorPage: React.FC<EditorPageProps> = ({
           }}
         />
 
+        {/* Mobile Sidebar Toggle Button */}
+        <Button
+          variant="secondary"
+          size="icon"
+          className="md:hidden fixed bottom-4 right-4 z-50 h-12 w-12 rounded-full shadow-lg"
+          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        >
+          {isMobileSidebarOpen ? (
+            <PanelRightClose className="h-5 w-5" />
+          ) : (
+            <PanelRightOpen className="h-5 w-5" />
+          )}
+        </Button>
+
+        {/* Mobile Sidebar Overlay */}
+        {isMobileSidebarOpen && (
+          <div 
+            className="md:hidden fixed inset-0 bg-black/50 z-30"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          />
+        )}
+
         {/* Right Sidebar - Combined Properties + Tabs */}
-        <div className="w-80 border-l bg-background flex flex-col z-10 shadow-lg">
+        <div className={`
+          fixed md:relative inset-y-0 right-0 
+          w-[280px] md:w-80 
+          bg-background flex flex-col z-40 shadow-lg border-l
+          transform transition-transform duration-300 ease-in-out
+          ${isMobileSidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+          top-[53px] md:top-0 h-[calc(100%-53px)] md:h-auto
+        `}>
             <RightSidebar 
                 selectedElement={selectedElement}
                 onUpdateElement={(updates) => selectedElementId && updateElement(selectedElementId, updates)}
