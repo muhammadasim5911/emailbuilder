@@ -4,15 +4,18 @@ const PUBLIC_CIRCLES_LOGO_URL = 'https://publiccircles-template-thumbnails.s3.ca
 
 /**
  * Creates a single responsive footer row for the email template.
- * The footer uses a media query to hide the dot separator on mobile.
+ * The footer uses both a media query and a data-attribute selector to hide the dot separator on mobile.
+ * - Media query: Works in actual email clients
+ * - Data attribute: Works in editor preview mode
  * All footer elements are locked and completely non-interactive.
  */
 export const createFooterRowsJson = (showPoweredBy: boolean, includeUnsubscribe: boolean) => {
   const rows: any[] = [];
 
-  // Build responsive footer HTML with inline media query
+  // Build responsive footer HTML with inline media query AND data-device-mode selector
   let footerHtmlContent = `
     <style>
+      /* Hide dot separator on actual mobile devices viewing the email */
       @media only screen and (max-width: 480px) {
         .footer-dot-separator {
           display: none !important;
@@ -21,6 +24,14 @@ export const createFooterRowsJson = (showPoweredBy: boolean, includeUnsubscribe:
           flex-direction: column !important;
           gap: 4px !important;
         }
+      }
+      /* Hide dot separator in editor mobile preview mode */
+      .email-canvas-content[data-device-mode="mobile"] .footer-dot-separator {
+        display: none !important;
+      }
+      .email-canvas-content[data-device-mode="mobile"] .footer-content-wrapper {
+        flex-direction: column !important;
+        gap: 4px !important;
       }
     </style>
     <div class="footer-content-wrapper" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; text-align: center; line-height: 1.5; font-size: 14px; padding: 10px; background-color: black; color: #ffffff; font-family: 'Cabin', sans-serif;">

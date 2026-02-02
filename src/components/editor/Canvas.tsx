@@ -223,9 +223,12 @@ export const Canvas: React.FC<CanvasProps> = ({
         >
             {/* Email Content Area */}
             <div
-              className="bg-white min-h-[800px] relative flex flex-col"
+              className="bg-white min-h-[800px] relative flex flex-col email-canvas-content"
+              data-device-mode={deviceMode}
               style={{
                 backgroundColor: template.defaultBackgroundColor,
+                // Set CSS custom property for device mode detection by footer
+                ['--canvas-device-mode' as any]: deviceMode,
               }}
             >
                <DndContext
