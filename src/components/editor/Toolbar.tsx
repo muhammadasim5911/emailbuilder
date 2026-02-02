@@ -37,7 +37,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 gap-4">
       {/* Left side - File actions */}
       <div className="flex items-center gap-2">
-        {onOpenTemplates && !hideTemplatesButton && (
+        {/* {onOpenTemplates && !hideTemplatesButton && (
           <Button
             variant="secondary"
             size="sm"
@@ -46,7 +46,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           >
             Templates
           </Button>
-        )}
+        )} */}
         <Button
           variant="ghost"
           size="sm"
