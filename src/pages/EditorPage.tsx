@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useEditorStore, useUserStore, useTemplateLibraryStore, useMergeTagStore } from '../store';
 import { Toolbar, Canvas, RightSidebar, LayersPanel, TemplateLibraryModal } from '../components/editor';
 import { Button } from '../components/ui/button';
-import { Toast } from '../components/base';
+import { Toaster } from '../components/ui/sonner';
+import { toast as sonnerToast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
 import { exportTemplate, createDefaultElement, findElementDeep, findParentElement, parseEmailHTML, injectFooterRows } from '../utils';
 import type { ExportOptions } from '../types';
@@ -40,14 +41,14 @@ export const EditorPage: React.FC<EditorPageProps> = ({
   const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
   const [deviceMode, setDeviceMode] = useState<'desktop' | 'mobile' | 'tablet'>('desktop');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; visible: boolean }>({
-    message: '',
-    type: 'info',
-    visible: false,
-  });
-
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    setToast({ message, type, visible: true });
+    if (type === 'success') {
+      sonnerToast.success(message);
+    } else if (type === 'error') {
+      sonnerToast.error(message);
+    } else {
+      sonnerToast.info(message);
+    }
   };
 
   // Store subscriptions
@@ -617,12 +618,7 @@ export const EditorPage: React.FC<EditorPageProps> = ({
       </Dialog>
 
       {/* Toast Notification */}
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.visible}
-        onClose={() => setToast({ ...toast, visible: false })}
-      />
+      <Toaster position="bottom-right" />
       
       {/* Template Library Modal */}
       <TemplateLibraryModal
