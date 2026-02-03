@@ -163,6 +163,12 @@ export const useEditorStore = create<EditorStore>((set, get) => {
     loadTemplate: (_id: string, template: EmailTemplate) => {
       // Create a completely new object to ensure reference changes
       const newTemplate = JSON.parse(JSON.stringify(template));
+      
+      // Ensure elements is an array
+      if (!newTemplate.elements) {
+        newTemplate.elements = [];
+      }
+
       set({
         currentTemplate: newTemplate,
         selectedElementId: null,

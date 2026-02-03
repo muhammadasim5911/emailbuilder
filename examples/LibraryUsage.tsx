@@ -73,7 +73,7 @@ function ExampleApp() {
   };
 
   return (
-    <div className="h-screen">
+    <div  className="h-screen">``
       <EmailTemplateBuilder
         // Merge tags configuration
         mergeTags={mergeTags}

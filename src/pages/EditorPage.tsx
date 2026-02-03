@@ -440,11 +440,12 @@ export const EditorPage: React.FC<EditorPageProps> = ({
       />
 
       {/* Main Editor Layout */}
-      <div className="flex flex-1 overflow-hidden gap-2 md:gap-4 p-2 md:p-4 bg-muted/20 relative">
+      <div className="flex flex-1 overflow-hidden gap-2 md:gap-4 bg-muted/20 relative">
         {/* Left Sidebar - Elements */}
 
 
         {/* Center - Canvas */}
+        <div className="flex-1 flex flex-col min-w-0 h-full p-2 md:p-4">
         <Canvas
           template={currentTemplate}
           selectedElementId={selectedElementId}
@@ -510,6 +511,7 @@ export const EditorPage: React.FC<EditorPageProps> = ({
             showToast(`${elementType} added to column`, 'success');
           }}
         />
+        </div>
 
         {/* Mobile Sidebar Toggle Button */}
         <Button
@@ -535,12 +537,12 @@ export const EditorPage: React.FC<EditorPageProps> = ({
 
         {/* Right Sidebar - Combined Properties + Tabs */}
         <div className={`
-          fixed md:relative inset-y-0 right-0 
+          absolute md:relative inset-y-0 right-0 
           w-[280px] md:w-80 
           bg-background flex flex-col z-40 shadow-lg border-l
           transform transition-transform duration-300 ease-in-out
           ${isMobileSidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
-          h-full md:h-auto
+          h-full
         `}>
             <RightSidebar 
                 selectedElement={selectedElement}
@@ -568,7 +570,7 @@ export const EditorPage: React.FC<EditorPageProps> = ({
                   minHeight: '400px'
                 }}
               >
-                {currentTemplate.elements.map((el: any) => (
+                {currentTemplate.elements?.map((el: any) => (
                   <div key={el.id} className="p-4 border border-transparent hover:border-blue-200">
                     {el.type === 'text' && <div style={{ fontSize: el.fontSize, color: el.color, textAlign: el.align }} dangerouslySetInnerHTML={{ __html: el.content }} />}
                     {el.type === 'image' && <img src={el.src} alt={el.alt} style={{ maxWidth: '100%' }} />}
