@@ -29,7 +29,7 @@ const DEFAULT_PRO_FEATURES: FeatureFlags = {
 interface EditorStore extends EditorState {
   // Template Actions
   createTemplate: (name: string, description?: string) => void;
-  loadTemplate: (id: string, template: EmailTemplate) => void;
+  loadTemplate: (id: string, template: EmailTemplate | string) => void;
   updateTemplate: (updates: Partial<EmailTemplate>) => void;
   saveTemplate: () => void;
 

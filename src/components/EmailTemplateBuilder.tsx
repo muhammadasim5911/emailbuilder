@@ -3,6 +3,7 @@ import type { EmailTemplateBuilderProps, SaveData } from '../types';
 import { useEditorStore, useMergeTagStore } from '../store';
 import { templateToHtml, templateToMjml, exportTemplate } from '../utils';
 import EditorPage from '../pages/EditorPage';
+import '../index.css'; // Import global styles for library build
 
 /**
  * EmailTemplateBuilder - Main library component
@@ -38,9 +39,13 @@ export const EmailTemplateBuilder: React.FC<EmailTemplateBuilderProps> = ({
   // Load initial template
   useEffect(() => {
     if (initialTemplate && !currentTemplate) {
-      loadTemplate(initialTemplate.id, initialTemplate);
+      if (typeof initialTemplate === 'string') {
+        loadTemplate('imported-html', initialTemplate);
+      } else {
+        loadTemplate(initialTemplate.id, initialTemplate);
+      }
     }
-  }, [initialTemplate?.id]); // Only re-run if template ID changes
+  }, [typeof initialTemplate === 'string' ? initialTemplate : initialTemplate?.id]); // Only re-run if template ID changes
 
   // Call onChange when template changes
   useEffect(() => {
