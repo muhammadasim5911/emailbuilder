@@ -16302,23 +16302,23 @@ const v0 = ({ ...e }) => {
   showPoweredBy: m,
   includeUnsubscribe: h
 }) => {
-  const { currentTemplate: v, loadTemplate: f } = Fi(), { setMergeTags: x, setMergeTagTriggers: y } = In();
+  const { currentTemplate: v, loadTemplate: f, createTemplate: x } = Fi(), { setMergeTags: y, setMergeTagTriggers: b } = In();
   de(() => {
-    x(t), y(n);
-  }, [t, n, x, y]), de(() => {
-    e && !v && f(typeof e == "string" ? "imported-html" : e.id, e);
-  }, [typeof e == "string" ? e : e?.id]), de(() => {
+    y(t), b(n);
+  }, [t, n, y, b]), de(() => {
+    e ? typeof e == "string" ? f("imported-html", e) : (!v || v.id !== e.id) && f(e.id, e) : v && x("New Email", "Start with a fresh template");
+  }, [e]), de(() => {
     v && r && r(v);
   }, [v]);
-  const b = () => {
+  const w = () => {
     if (!v || !o) return;
-    const w = {
+    const S = {
       template: v,
       html: Gi(v),
       json: JSON.stringify(v, null, 2),
       mjml: Yi(v)
     };
-    o(w);
+    o(S);
   };
   return /* @__PURE__ */ i.jsx(
     b0,
@@ -16328,7 +16328,7 @@ const v0 = ({ ...e }) => {
       hideElementsPanel: l,
       hideSettingsPanel: c,
       hideSaveButton: d,
-      onSave: b,
+      onSave: w,
       showFooter: u,
       showPoweredBy: m ?? u,
       includeUnsubscribe: h ?? u

@@ -28,7 +28,7 @@ export const EmailTemplateBuilder: React.FC<EmailTemplateBuilderProps> = ({
   showPoweredBy,
   includeUnsubscribe,
 }) => {
-  const { currentTemplate, loadTemplate } = useEditorStore();
+  const { currentTemplate, loadTemplate, createTemplate } = useEditorStore();
   const { setMergeTags, setMergeTagTriggers } = useMergeTagStore();
   // Sync merge tags and triggers from props to store
   useEffect(() => {
@@ -36,16 +36,29 @@ export const EmailTemplateBuilder: React.FC<EmailTemplateBuilderProps> = ({
     setMergeTagTriggers(mergeTagTriggers);
   }, [mergeTags, mergeTagTriggers, setMergeTags, setMergeTagTriggers]);
 
-  // Load initial template
+  // Load initial template or reset
   useEffect(() => {
-    if (initialTemplate && !currentTemplate) {
+    if (initialTemplate) {
+      // Logic for when a template is provided
       if (typeof initialTemplate === 'string') {
+        // For strings, we can't easily check ID, so we might need to assume it's new or check content hash
+        // For now, let's load it if we don't have a template or if the current one doesn't look like this string
+        // Since we convert string to object, exact match is hard. Let's just load it.
         loadTemplate('imported-html', initialTemplate);
       } else {
-        loadTemplate(initialTemplate.id, initialTemplate);
+        // For objects, check ID mismatch or if no current template
+        if (!currentTemplate || currentTemplate.id !== initialTemplate.id) {
+          loadTemplate(initialTemplate.id, initialTemplate);
+        }
+      }
+    } else {
+      // No initial template provided - RESET to fresh state if we have a template loaded
+      // This ensures "New Template" flows work correctly by clearing old data
+      if (currentTemplate) {
+        createTemplate('New Email', 'Start with a fresh template');
       }
     }
-  }, [typeof initialTemplate === 'string' ? initialTemplate : initialTemplate?.id]); // Only re-run if template ID changes
+  }, [initialTemplate]); // Re-run ONLY when initialTemplate prop changes
 
   // Call onChange when template changes
   useEffect(() => {
