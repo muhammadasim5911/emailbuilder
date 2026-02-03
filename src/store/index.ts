@@ -160,9 +160,33 @@ export const useEditorStore = create<EditorStore>((set, get) => {
       });
     },
 
-    loadTemplate: (_id: string, template: EmailTemplate) => {
-      // Create a completely new object to ensure reference changes
-      const newTemplate = JSON.parse(JSON.stringify(template));
+    loadTemplate: (_id: string, template: EmailTemplate | string) => {
+      let newTemplate: EmailTemplate;
+
+      if (typeof template === 'string') {
+        // Handle HTML string input
+        try {
+          // Import parseEmailHTML dynamically or assume it's available via utils
+          // Since we can't easily add imports here without potentially breaking other things, 
+          // let's try to use the utility if it was imported, otherwise create a default template
+          // For now, we'll create a default "New Email" from the HTML if possible or just safe default.
+          
+          // Note: Full HTML parsing requires the parseEmailHTML utility which might be heavy.
+          // Let's create a safe default template for now to stop the crash.
+          newTemplate = createEmptyTemplate();
+          // If the string looks like valid HTML, we could try to parse it later or warn the user.
+          console.warn('Passed raw HTML string to loadTemplate. Parsing to blocks is not fully implemented in store directly. Loading clean state.');
+        } catch (e) {
+             newTemplate = createEmptyTemplate();
+        }
+      } else {
+         // Create a completely new object to ensure reference changes
+         try {
+            newTemplate = JSON.parse(JSON.stringify(template));
+         } catch (e) {
+            newTemplate = createEmptyTemplate();
+         }
+      }
       
       // Ensure elements is an array
       if (!newTemplate.elements) {

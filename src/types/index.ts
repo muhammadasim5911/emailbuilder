@@ -324,7 +324,7 @@ export interface SaveData {
 // Email Template Builder Props (for library usage)
 export interface EmailTemplateBuilderProps {
   // Initial data
-  initialTemplate?: EmailTemplate;
+  initialTemplate?: EmailTemplate | string;
   
   // Merge tags configuration
   mergeTags?: MergeTag[];
