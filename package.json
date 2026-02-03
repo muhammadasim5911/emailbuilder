@@ -2,13 +2,19 @@
   "name": "email-template-builder",
   "version": "1.0.0",
   "type": "module",
-  "main": "./src/components/EmailTemplateBuilder.tsx",
+  "main": "./dist/email-template-builder.umd.js",
+  "module": "./dist/email-template-builder.es.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/components/EmailTemplateBuilder.tsx",
-    "./types": "./src/types/index.ts",
-    "./store": "./src/store/index.ts",
-    "./utils": "./src/utils/index.ts"
+    ".": {
+      "import": "./dist/email-template-builder.es.js",
+      "require": "./dist/email-template-builder.umd.js"
+    },
+    "./style.css": "./dist/email-template-builder.css"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
