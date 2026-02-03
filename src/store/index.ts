@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { EmailTemplate, EmailElement, EditorState, User, FeatureFlags, MergeTag } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { parseEmailHTML } from '../utils';
 
 // Default feature flags for free tier
 const DEFAULT_FREE_FEATURES: FeatureFlags = {
@@ -166,18 +167,35 @@ export const useEditorStore = create<EditorStore>((set, get) => {
       if (typeof template === 'string') {
         // Handle HTML string input
         try {
-          // Import parseEmailHTML dynamically or assume it's available via utils
-          // Since we can't easily add imports here without potentially breaking other things, 
-          // let's try to use the utility if it was imported, otherwise create a default template
-          // For now, we'll create a default "New Email" from the HTML if possible or just safe default.
+          // Import parseEmailHTML from utils (it is exported in index.ts)
+          // We need to use valid Template structure
           
-          // Note: Full HTML parsing requires the parseEmailHTML utility which might be heavy.
-          // Let's create a safe default template for now to stop the crash.
+          // 1. Create base template
           newTemplate = createEmptyTemplate();
-          // If the string looks like valid HTML, we could try to parse it later or warn the user.
-          console.warn('Passed raw HTML string to loadTemplate. Parsing to blocks is not fully implemented in store directly. Loading clean state.');
+          newTemplate.name = 'Imported Template';
+          
+          // 2. Parse HTML to elements
+          // Note: parseEmailHTML is imported from utils
+          // We need to ensure we have access to it. Since we are in store/index.ts, 
+          // and utils imports types which might cause cycle if not careful, 
+          // but here we are using the store implementation.
+          
+          // Ideally: import { parseEmailHTML } from '../utils';
+          // But since we are inside the function, we'll assume the utility is available via the module import at top
+          // (We will add the import statement in next step if missing)
+          
+          const elements = parseEmailHTML(template);
+          
+          if (elements && elements.length > 0) {
+            newTemplate.elements = elements;
+             console.log('Successfully parsed HTML template with ' + elements.length + ' elements');
+          } else {
+             console.warn('HTML parsing yielded no elements. Loading empty.');
+          }
+
         } catch (e) {
-             newTemplate = createEmptyTemplate();
+          console.error('Failed to parse HTML string:', e);
+          newTemplate = createEmptyTemplate();
         }
       } else {
          // Create a completely new object to ensure reference changes
