@@ -5,6 +5,7 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  important: '.email-builder-theme',
   theme: {
   	extend: {
   		colors: {
