@@ -256,6 +256,7 @@ export const Canvas: React.FC<CanvasProps> = ({
                       onDelete={onElementDelete}
                       onAddChild={onAddChild}
                       selectedElementId={selectedElementId}
+                      deviceMode={deviceMode}
                     />
                   ))}
                 </SortableContext>
@@ -270,6 +271,7 @@ export const Canvas: React.FC<CanvasProps> = ({
                               onSelect={() => {}}
                               onUpdate={() => {}}
                               onDelete={() => {}}
+                              deviceMode={deviceMode}
                            />
                          </div>
                       ) : null}
@@ -290,6 +292,7 @@ export const Canvas: React.FC<CanvasProps> = ({
                     onDelete={() => {}}
                     onAddChild={onAddChild}
                     selectedElementId={selectedElementId}
+                    deviceMode={deviceMode}
                   />
                 </div>
               ))}

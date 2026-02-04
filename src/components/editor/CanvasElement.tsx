@@ -15,6 +15,7 @@ interface CanvasElementProps {
   onDelete: (id: string) => void;
   onAddChild?: (parentId: string, elementType: string) => void;
   selectedElementId?: string | null;
+  deviceMode?: 'desktop' | 'mobile' | 'tablet';
 }
 
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -51,14 +52,16 @@ const RenderChildren = ({
   onUpdate, 
   onDelete, 
   onAddChild,
-  selectedElementId
+  selectedElementId,
+  deviceMode = 'desktop'
 }: { 
   elements: EmailElement[], 
   onSelect: (id: string | null) => void, 
   onUpdate: (id: string, updates: Partial<EmailElement>) => void, 
   onDelete: (id: string) => void,
   onAddChild?: (parentId: string, elementType: string) => void,
-  selectedElementId: string | null
+  selectedElementId: string | null,
+  deviceMode?: 'desktop' | 'mobile' | 'tablet'
 }) => {
   return (
     <SortableContext
@@ -75,6 +78,7 @@ const RenderChildren = ({
           onDelete={onDelete}
           onAddChild={onAddChild}
           selectedElementId={selectedElementId}
+          deviceMode={deviceMode}
         />
       ))}
     </SortableContext>
@@ -90,6 +94,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   onDelete,
   onAddChild,
   selectedElementId,
+  deviceMode = 'desktop',
 }) => {
   // Check if this is a footer element (should be completely non-interactive)
   const isFooter = !!(element as any)._isFooter || element.locked;
@@ -146,9 +151,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   const baseStyle: React.CSSProperties = {
     backgroundColor: (element as any).backgroundColor,
     width: element.type === 'column' 
-      ? undefined 
+      ? (deviceMode !== 'desktop' ? '100%' : undefined)
       : (typeof element.width === 'number' ? `${element.width}px` : element.width || '100%'),
-    flexBasis: element.type === 'column' ? (element.width || '50%') : undefined,
+    flexBasis: element.type === 'column' ? (deviceMode !== 'desktop' ? '100%' : (element.width || '50%')) : undefined,
     flexShrink: element.type === 'column' ? 0 : undefined,
     flexGrow: element.type === 'column' ? 0 : undefined,
     height: typeof element.height === 'number' ? `${element.height}px` : element.height || 'auto',
@@ -182,6 +187,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     onUpdate,
     onDelete,
     selectedId: isSelected ? element.id : null,
+    deviceMode,
   };
   
   // For columns, don't apply drag listeners to the container - they're not draggable
@@ -236,6 +242,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     onDelete={onDelete} 
                     onAddChild={onAddChild}
                     selectedElementId={selectedElementId || null} 
+                    deviceMode={deviceMode}
                 />
             )}
         />
@@ -244,6 +251,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         <>
           <RowElementRenderer 
               element={element as any}
+              deviceMode={deviceMode}
               renderChildren={(children) => (
                   <RenderChildren 
                       elements={children} 
@@ -252,6 +260,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                       onDelete={onDelete} 
                       onAddChild={onAddChild}
                       selectedElementId={selectedElementId || null} 
+                      deviceMode={deviceMode}
                   />
               )}
           />
@@ -272,6 +281,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     onDelete={onDelete} 
                     onAddChild={onAddChild}
                     selectedElementId={selectedElementId || null} 
+                    deviceMode={deviceMode}
                 />
             )}
         />
@@ -409,11 +419,15 @@ const ColumnElementRenderer: React.FC<{
   );
 };
 
-const RowElementRenderer: React.FC<{ element: any, renderChildren: (children: any[]) => React.ReactNode }> = ({ element, renderChildren }) => (
+const RowElementRenderer: React.FC<{ 
+  element: any, 
+  renderChildren: (children: any[]) => React.ReactNode,
+  deviceMode?: 'desktop' | 'mobile' | 'tablet'
+}> = ({ element, renderChildren, deviceMode = 'desktop' }) => (
   <div
     style={{
       display: 'flex',
-      flexDirection: 'row',
+      flexDirection: deviceMode !== 'desktop' ? 'column' : 'row',
       gap: `${element.gap || 0}px`,
       minHeight: '80px',
       width: '100%',
