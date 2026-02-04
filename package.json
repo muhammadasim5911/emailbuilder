@@ -1,6 +1,6 @@
 {
   "name": "@muhammadasim5911/email-template-builder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A powerful drag-and-drop email template builder with React and TypeScript",
   "type": "module",
   "repository": {
