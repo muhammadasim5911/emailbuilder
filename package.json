@@ -1,7 +1,27 @@
 {
-  "name": "email-template-builder",
+  "name": "@muhammadasim5911/email-template-builder",
   "version": "1.0.0",
+  "description": "A powerful drag-and-drop email template builder with React and TypeScript",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muhammadasim5911/emailbuilder.git"
+  },
+  "keywords": [
+    "email",
+    "template",
+    "builder",
+    "editor",
+    "react",
+    "typescript",
+    "drag-drop",
+    "wysiwyg"
+  ],
+  "author": "muhammadasim5911",
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "main": "./dist/email-template-builder.umd.js",
   "module": "./dist/email-template-builder.es.js",
   "types": "./dist/index.d.ts",
@@ -21,7 +41,8 @@
     "build:lib": "vite build -c vite.config.lib.ts",
     "build:check": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "publish:package": "./publish.sh"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -41,7 +62,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dnd-core": "^16.0.1",
-    "email-template-builder": "github:muhammadasim5911/emailbuilder",
     "lucide-react": "^0.563.0",
     "next-themes": "^0.4.6",
     "react-dnd": "^16.0.1",

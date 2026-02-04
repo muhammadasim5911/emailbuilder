@@ -13,24 +13,49 @@ A powerful, reusable React email template builder with drag-and-drop functionali
 
 ## Installation
 
-### Using npm link (Recommended for local development)
+This package is published to **GitHub Packages** as a private package.
 
-```bash
-# In this directory
-npm link
+### Step 1: Authentication Setup
 
-# In your app
-cd /path/to/your/app
-npm link email-template-builder
+Create a Personal Access Token (PAT) with `read:packages` permission:
+1. Go to https://github.com/settings/tokens
+2. Generate new token (classic)
+3. Select `read:packages` scope
+4. Copy the token
+
+### Step 2: Configure npm
+
+In your project, create or update `.npmrc`:
+
+```
+@muhammadasim5911:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=YOUR_PERSONAL_ACCESS_TOKEN
 ```
 
-See [SETUP_GUIDE.md](./SETUP_GUIDE.md) for detailed instructions.
+> ⚠️ **Important**: Add `.npmrc` to `.gitignore` to keep your token secure!
+
+### Step 3: Install the Package
+
+```bash
+npm install @muhammadasim5911/email-template-builder
+```
+
+### Alternative: Direct GitHub Install
+
+You can also install directly from GitHub without npm:
+
+```bash
+npm install git+https://github.com/muhammadasim5911/emailbuilder.git
+```
+
+For detailed publishing instructions, see [PUBLISHING.md](./PUBLISHING.md).
 
 ## Quick Start
 
 ```typescript
-import { EmailTemplateBuilder } from 'email-template-builder';
-import type { MergeTag, SaveData } from 'email-template-builder/types';
+import { EmailTemplateBuilder } from '@muhammadasim5911/email-template-builder';
+import '@muhammadasim5911/email-template-builder/style.css';
+import type { MergeTag, SaveData } from '@muhammadasim5911/email-template-builder';
 
 function App() {
   const mergeTags: MergeTag[] = [
@@ -98,6 +123,22 @@ interface SaveData {
 ## Examples
 
 See [examples/LibraryUsage.tsx](./examples/LibraryUsage.tsx) for a complete example.
+
+## Publishing
+
+To publish a new version (for package maintainers):
+
+```bash
+npm run publish:package
+```
+
+The script will guide you through:
+- Committing changes
+- Version bumping (patch/minor/major)
+- Building and testing
+- Pushing to GitHub (triggers auto-publish)
+
+See [PUBLISHING.md](./PUBLISHING.md) for detailed instructions.
 
 ## Development
 
